@@ -1,0 +1,123 @@
+FILE
+
+SYMBOL <= \o
+VALUE <= \i \f \s
+OP <= + - * / ^ | & < > % or and xor <= >= == !=
+UNIOP <= not
+L_PAREN <= (
+R_PAREN <= )
+L_CURLY <= {
+R_CURLY <= }
+L_BRACK <= [
+R_BRACK <= ]
+COMMA <= ,
+PUB <= pub
+VAR <= var
+READABLE <= readable
+FN_MOD <= abstract override virtual
+DOT <= .
+CLASS <= class
+NEWLINE <= \n
+EQUALS <= = += -= *= /=
+PACKAGE <= package
+IMPORT <= import
+THROW <= throw
+THROWS <= throws
+IF <= if
+ELSE <= else
+LOOP <= loop
+BREAK <= break
+IN <= in
+OBJECT <= object
+TEST <= test
+WHERE <= where
+SHOULD <= should
+
+FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? TESTS                            \# Test file
+FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? CLASS_DEFN                       \# Only class
+FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? OBJ_DEFN                         \# Only object
+FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? OBJ_DEFN NEWLINE CLASS_DEFN      \# Object and class
+
+PACKAGE_PATH => SYMBOL DOT PACKAGE_PATH                         \# Package spec
+PACKAGE_PATH => SYMBOL NEWLINE                                  \#
+IMPORT_DECLS => IMPORT PACKAGE_PATH IMPORT_DECLS?               \#
+
+TESTS => TEST SYMBOL L_CURLY TEST_CODE? R_CURLY                                                 \# Goes to test code
+OBJ_DEFN => OBJECT SYMBOL L_CURLY CODE? R_CURLY                                                 \# Simple object definition
+CLASS_DEFN => CLASS TYPE L_PAREN CLASS_PARAMS? R_PAREN TYPE_SPEC? L_CURLY CODE? R_CURLY         \# Complex class definition
+
+TEST_CODE => TEST_LINE MORE_TEST_CODE?      \# Test code
+MORE_TEST_CODE => NEWLINE TEST_CODE         \#
+
+TEST_LINE => SHOULD L_PAREN VALUE R_PAREN L_CURLY FN_CODE R_CURLY       \# Test
+TEST_LINE => VAR? TYPE SYMBOL EQUALS CALL                               \# Symbol definition
+
+OBJ_CODE => LINE MORE_OBJ_CODE?
+MORE_OBJ_CODE => NEWLINE OBJ_CODE
+TYPE_SPEC => WHERE TYPE L_PAREN TYPE_CONSTRAINT R_PAREN TYPE_SPEC?      \# Each spec has constraints
+TYPE_CONSTRAINT => TYPE COMMA TYPE_CONSTRAINT                           \# Each constraint is a type
+TYPE_CONSTRAINT => TYPE                                                 \#
+
+CLASS_PARAMS => SYMBOL COMMA CLASS_PARAMS       \# Class Params
+CLASS_PARAMS => SYMBOL                          \#
+
+CODE => LINE MORE_CODE?         \# Class code
+MORE_CODE => NEWLINE CODE       \#
+
+LINE => PUB? VAR? TYPE SYMBOL EQUALS CALL                                                               \# Symbol definition
+LINE => READABLE TYPE SYMBOL EQUALS CALL                                                                \# Symbol definition with readable
+LINE => FN_MOD? PUB? TYPE? SYMBOL L_PAREN PARAM_DEFS? R_PAREN THROW_SET? L_CURLY FN_CODE? R_CURLY       \# Function decleration
+
+PARAM_DEFS => FN_DECL COMMA PARAM_DEFS      \# Parameter definitions
+PARAM_DEFS => FN_DECL                       \#
+FN_DECL => VAR? TYPE SYMBOL EQUALS VALUE    \# Default value
+FN_DECL => VAR? TYPE SYMBOL                 \# No default value
+
+FN_CODE => FN_LINE MORE_FN_CODE?        \# Unpack function code
+MORE_FN_CODE => NEWLINE FN_CODE         \# Newline between lines
+
+THROW_SET => THROWS SYMBOL MORE_THROWS?         \# Set of exceptions thrown by the function
+MORE_THROWS => COMMA SYMBOL MORE_THROWS?        \#
+
+FN_LINE => CALL                                                                 \# Call
+FN_LINE => THROW CALL                                                           \# Throw exception
+FN_LINE => VAR? TYPE SYMBOL EQUALS CALL                                         \# Symbol definition
+FN_LINE => FETCH EQUALS CALL                                                    \# Assignment
+FN_LINE => IF L_PAREN CALL R_PAREN L_CURLY FN_CODE R_CURLY ELIFS? ELSE_CODE?    \# If statement
+FN_LINE => LOOP L_PAREN SYMBOL IN CALL R_PAREN L_CURLY LOOP_CODE? R_CURLY       \# Iterate over iterable or number
+FN_LINE => LOOP L_PAREN R_PAREN L_CURLY LOOP_CODE? R_CURLY                      \# Infinite loop, must be broken
+
+ELIFS => ELSE IF L_PAREN CALL R_PAREN L_CURLY FN_CODE R_CURLY ELIFS?        \# Else if
+ELSE_CODE => ELSE L_CURLY FN_CODE R_CURLY                                   \# Else
+
+LOOP_CODE => FN_LINE MORE_LOOP_CODE?        \# Unpack loop code
+LOOP_CODE => BREAK MORE_LOOP_CODE?          \# Loop code can have a break
+MORE_LOOP_CODE => NEWLINE LOOP_CODE         \# Newline between lines
+
+CALL => L_PAREN CALL MORE_CALL? R_PAREN CALL? MORE_CALL?
+CALL => L_PAREN PARAM_DEFS? R_PAREN L_CURLY FN_CODE R_CURLY         \# Lambda
+CALL => RESULT MORE_CALL?
+CALL => UNIOP CALL                                                  \# Unary operation
+CALL => VALUE
+
+MORE_CALL => DOT RESULT MORE_CALL?
+MORE_CALL => OP CALL
+
+RESULT => FETCH L_PAREN PARAMS? R_PAREN
+RESULT => TYPE L_PAREN PARAMS? R_PAREN
+RESULT => FETCH
+
+FETCH => L_FETCH DOT R_FETCH        \# Chain dereference
+FETCH => SYMBOL                     \# A fetch can just be a symbol but not a value
+L_FETCH => VALUE                    \# Values are only acceptable as the first symbol
+L_FETCH => SYMBOL
+R_FETCH => SYMBOL DOT R_FETCH
+R_FETCH => SYMBOL
+
+PARAMS => CALL COMMA PARAMS     \# Function call parameters
+PARAMS => CALL                  \#
+
+TYPE => SYMBOL L_BRACK INNER_TYPE R_BRACK   \# Types have layers
+TYPE => SYMBOL                              \# Types can be symbols, however most symbols aren't types!
+INNER_TYPE => TYPE COMMA INNER_TYPE         \# Types can have multiple inner types
+INNER_TYPE => TYPE                          \#

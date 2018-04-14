@@ -1,0 +1,36 @@
+package mirage.SlowMap
+
+test SlowMap
+{
+    should("get and set")
+    {
+        SlowMap[int, int] testMap = SlowMap[int, int]()
+        Int key = 1
+        Int value = 2
+        testMap.set(key, value)
+        Int result = testMap.get(key)
+        verify.equal(result, value)
+    }
+
+    should("throw not found if element not in hash map")
+    {
+        SlowMap[int, int] testMap = SlowMap[int, int]()
+        testMap.set(3, 4)
+        testMap.set(2, 1)
+        verify.throws(NotFound, () => testMap.get(1))
+    }
+
+    should("grow in size and keep all elements")
+    {
+        Int startingSize = 8
+        SlowMap[int, int] testMap = SlowMap[int, int](startingSize)
+        loop(1024)
+        {
+            testMap.set(at, at + 2)
+        }
+        loop(1024)
+        {
+            verify.equal(testMap.get(at), at + 2)
+        }
+    }
+}

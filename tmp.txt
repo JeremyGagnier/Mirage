@@ -1,0 +1,48 @@
+CALL => L_PAREN CALL MORE_CALL? R_PAREN CALL? MORE_CALL?
+CALL => L_PAREN PARAM_DEFS? R_PAREN L_CURLY FN_CODE R_CURLY         \# Lambda
+CALL => RESULT MORE_CALL?
+CALL => UNIOP CALL                                                  \# Unary operation
+CALL => VALUE
+
+MORE_CALL => DOT RESULT MORE_CALL?
+MORE_CALL => OP CALL
+
+RESULT => FETCH L_PAREN PARAMS? R_PAREN
+RESULT => TYPE L_PAREN PARAMS? R_PAREN
+RESULT => FETCH
+
+FETCH => L_FETCH DOT R_FETCH        \# Chain dereference
+FETCH => SYMBOL                     \# A fetch can just be a symbol but not a value
+L_FETCH => VALUE                    \# Values are only acceptable as the first symbol
+L_FETCH => SYMBOL
+R_FETCH => SYMBOL DOT R_FETCH
+R_FETCH => SYMBOL
+
+type((symbol.symbol * symbol).symbol):
+TYPE L_PAREN L_PAREN SYMBOL DOT SYMBOL OP SYMBOL R_PAREN DOT SYMBOL R_PAREN
+    CALL =>
+    RESULT MORE_CALL? =>
+    TYPE L_PAREN PARAMS? R_PAREN MORE_CALL? =>
+            CALL R_PAREN MORE_CALL? =>
+            L_PAREN CALL MORE_CALL? R_PAREN CALL? MORE_CALL?
+
+
+
+symbol.symbol(symbol).symbol() % symbol.symbol:
+SYMBOL DOT SYMBOL L_PAREN SYMBOL R_PAREN DOT SYMBOL L_PAREN R_PAREN OP SYMBOL DOT SYMBOL
+    CALL =>
+    RESULT MORE_CALL? =>
+    FETCH L_PAREN PARAMS? R_PAREN MORE_CALL? =>
+    SYMBOL DOT FETCH L_PAREN PARAMS? R_PAREN MORE_CALL? =>
+            SYMBOL PARAMS? R_PAREN MORE_CALL? =>
+                SYMBOL R_PAREN MORE_CALL? =>
+                        DOT RESULT MORE_CALL? =>
+                            FETCH L_PAREN PARAMS? R_PAREN MORE_CALL? =>
+                            SYMBOL L_PAREN PARAMS? R_PAREN MORE_CALL? =>
+                                            OP CALL =>
+                                                RESULT MORE_CALL? =>
+                                                FETCH MORE_CALL? =>
+                                                SYMBOL DOT FETCH MORE_CALL? =>
+                                                        SYMBOL MORE_CALL? =>
+                                                            fin
+

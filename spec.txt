@@ -1,0 +1,101 @@
+Name Candidates:
+    - Mirage
+
+class Foo(Primitive)                        // The 'arguments' of a class are the parent classes. Deriving from
+                                            // primitive means that the type will be passed by value by default.
+{
+    pub var Int publicIntegerVariable = 0
+    var Int privateIntegerVariable = 1
+    Int privateIntegerConstant = 2
+
+    Foo apply()
+    {
+
+    }
+
+    Tuple unapply()
+    {
+    
+    }
+
+    pub publicIntegerFunction(var Int a)    // No type, identical function to C's void. var parameters are passed by
+                                            // reference, all non-primitives are implied to have var, and cannot have
+                                            // explicit var.
+    {
+        a = 5
+    }
+
+    override Option<Int> privateOptionFunction(Int x)
+    {
+        x.match
+            .case(y < 0).then(
+            {
+                Option.none
+            })
+            .case(y > 0).then(
+            {
+                Option(y)
+            })
+            .default(
+            {
+                println("x was zero")
+                Option.none
+            })
+    }
+
+
+    
+    Func<Int> add(Int x)
+    {
+        (Int y)
+        {
+            x + y
+        }
+    }
+}
+
+Keywords:
+    - pub: Public, used to allow other classes to access the fields of this class
+    - var: Variable, used to allow modifications to this name
+    - class: Used to define new types
+    - if
+    - while
+    - abstract (necessary?)
+    - virtual (bad name?)
+    - override
+    - package
+    - import
+
+Operators:
+    - +: add
+    - -: subtract
+    - *: multiply
+    - /: divide
+    - ^: power
+    - &: bitwise and
+    - |: bitwise or
+    - xor: bitwise xor
+    - inv: bitwise not
+    - and: logical and
+    - or: logical or
+    - not: logical not
+
+Primitives:
+    - Bool  ,  8 bits, comes with the C/C++ concept that a bool is either 0 or 1. Multiple bools can be collapsed into one byte.
+    - Byte  ,  8 bits
+    - Int   , 32 bits
+    - Long  , 64 bits
+    - Float , 32 bits
+    - Double, 64 bits
+
+Built-in Types:
+    - String, constructed with "..."
+    - Exception, constructed with Exception(string)
+    - Option<>, constructed with Option(elem)
+    - Future<>, constructed with Future(elem)
+    - List<>, linked list
+    - Map<>, constructed with {key1 -> value1, key2 -> value2, ...}
+    - Array<>, constructed with [elem1, elem2, ...]
+    - Set<>, constructed with {elem1, elem2, ...}
+    - Tuple<>, constructed with (elem1, elem2, ...)
+    - Func<>, the value of any function symbol, when stored comes with a pointer to the instance. lambdas are a child type of Func<> and come with encapsulated values.

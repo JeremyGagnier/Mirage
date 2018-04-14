@@ -1,0 +1,21 @@
+package FooBarBaz
+
+import Math
+
+class Foo()
+{
+    pub var Int x = 1
+    pub Int y = x
+    var Int z = y + x
+    Int w = baz()
+
+    bar(var Int fooBar)
+    {
+        fooBar = 0
+    }
+
+    pub Int baz()
+    {
+        3
+    }
+}
