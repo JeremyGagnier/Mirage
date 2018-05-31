@@ -4,90 +4,109 @@ import mirage.exceptions
 
 // Constants go here. Accessed via SlowMap.whatever
 object SlowMap
-{
-    float SCALE_FACTOR = 2
-}
+
+float SCALE_FACTOR = 2
+
 // Methods and params go here. Accessable once an instance has been created.
-class SlowMap[K, V](Iterable) where K(Hashable)
+class SlowMap[K, V](Iterable[Tuple[K, V]]) where K(Hashable)
+
+// Params must always be set, but this will be optimized by shoving the set into all apply
+// methods and removing any redundant/obsolete setting.
+readable Int count = 0
+readable Array[K] keys = null
+readable Array[V] values = null
+
+var Array[Tuple[K, V]] pairs = null
+
+// Here throws OutOfMemory isn't necessary but it's helpful since this is a generic type.
+pub SlowMap(Int capacity = 0) throws OutOfMemory
 {
-    // Params must always be set, but this will be optimized by shoving the set into all apply
-    // methods and removing any redundant/obsolete sets.
-    readable Int count = 0
-    readable Array[K] keys = null
-    readable Array[V] values = null
+    keys = new(capacity)
+    values = new(capacity)
 
-    var Array[Tuple[K, V]] pairs = null
+    pairs = new(capacity)
+}
 
-    // Here throws OutOfMemory isn't necessary but it's helpful since this is a generic type.
-    pub SlowMap apply(Int capacity = 0) throws OutOfMemory
+// Required by iterable
+override pub Tuple[K, V] next()
+{
+    Tuple[K, V] item = new(keys.get(Iterable.at), values.get(Iterable.at))
+    Iterable.at += 1
+    item
+}
+
+// Here throws NotFound is necessary since it's manually thrown.
+pub V get(K key) throws NotFound
+{
+    Long index = key.getHash() % pairs.length
+    Tuple[K, V] pair = pairs.get(index)
+    if (pair == null  or pair.get(0) != key)
     {
-        keys = Array[K](capacity)
-        values = Array[V](capacity)
-
-        pairs = Array[Tuple[K, V]](capacity)
+        throw NotFound
     }
+    pair.get(1)
+}
 
-    pub Tuple[Array[K], Array[V]] unapply()
+// Slow remove
+pub remove(K key) throws NotFound
+{
+    Long index = key.getHash() % pairs.length
+    Tuple[K, V] pair = pairs.get(index)
+    if (pair == null or pair.get(0) != key)
     {
-        Tuple[Array[K], Array[V]](keys, values)
+        throw NotFound
     }
+    pairs.set(index, null)
 
-    // Required by iterable
-    pub Tuple[K, V] next()
+    Bool foundKey = false
+    loop(at in keys.length)
     {
-        Tuple[K, V] item = Tuple[Array[k], Array[V]](keys.get(Iterable.at), values.get(Iterable.at))
-        Iterable.at += 1
-        item
-    }
-
-    // Here throws NotFound is necessary since it's manually thrown.
-    pub V get(K key) throws NotFound
-    {
-        if (pairs.get(key.getHash()) == null)
+        if (foundKey)
         {
-            throw NotFound
+            keys.set(at - 1, keys.get(at))
+            values.set(at - 1, values.get(at))
         }
-        Tuple[K, V] pair = pairs.get(key.getHash() % pairs.length)
-        if (pair.get(0) != key)
+        else if (keys.get(at) == key)
         {
-            throw NotFound
+            foundKey = true
         }
-        pair.get(1)
     }
+    keys.pop()
+    values.pop()
+}
 
-    // This is the naive approach to setting in a hashmap.
-    pub set(K key, V value) throws OutOfMemory
+// This is the naive approach to setting in a hashmap.
+pub set(K key, V value) throws OutOfMemory
+{
+    Long index = key.getHash() % pairs.length
+    Tuple[K, V] pair = pairs.get(index)
+    if (pair == null)
     {
-        Long index = key.getHash() % pairs.length
+        pairs.set(index, value)
+        keys.add(key)
+        values.add(value)
+    }
+    else
+    {
+        resizePairs()
+        set(key, value)
+    }
+}
+
+resizePairs()
+{
+    pairs = new((pairs.length * SCALE_FACTOR).ceiling)
+    loop(at in keys.length)
+    {
+        Long index = keys.get(at).getHash() % pairs.length
         Tuple[K, V] pair = pairs.get(index)
         if (pair == null)
         {
-            pairs.set(index, value)
-            keys.add(key)
-            values.add(value)
+            pairs.set(index, values.get(at))
         }
         else
         {
             resizePairs()
-            set(key, value)
-        }
-    }
-
-    resizePairs()
-    {
-        pairs = Array[Tuple[K, V]]((pairs.length * SCALE_FACTOR).ceiling)
-        loop(at in keys.length)
-        {
-            Long index = keys.get(at).getHash() % pairs.length
-            Tuple[K, V] pair = pairs.get(index)
-            if (pair == null)
-            {
-                pairs.set(index, values.get(at))
-            }
-            else
-            {
-                resizePairs()
-            }
         }
     }
 }

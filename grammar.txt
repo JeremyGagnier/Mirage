@@ -32,6 +32,7 @@ OBJECT <= object
 TEST <= test
 WHERE <= where
 SHOULD <= should
+NEW <= new
 
 FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? TESTS                            \# Test file
 FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? CLASS_DEFN                       \# Only class
@@ -104,7 +105,7 @@ MORE_CALL => DOT RESULT MORE_CALL?
 MORE_CALL => OP CALL
 
 RESULT => FETCH L_PAREN PARAMS? R_PAREN
-RESULT => TYPE L_PAREN PARAMS? R_PAREN
+RESULT => NEW L_PAREN PARAMS? R_PAREN
 RESULT => FETCH
 
 FETCH => L_FETCH DOT R_FETCH        \# Chain dereference
