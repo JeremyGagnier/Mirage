@@ -1,0 +1,5 @@
+package MirageCompiler/Tokenizer
+
+class TokenizerException(TokenizerExceptionType type, Int lineNum, Int columnNum, String offender)
+
+String message = type.value.format(Seq(lineNum.toString(), columnNum.toString(), offender))

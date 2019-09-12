@@ -1,0 +1,103 @@
+package mirage.SlowMap
+
+import mirage.exceptions
+
+object SlowMap
+
+float SCALE_FACTOR = 2
+
+class SlowMap[K, V](Iterable[Tuple[K, V]]) where K(Hashable)
+
+readable Int count = 0
+readable Array[K] keys
+readable Array[V] values
+
+var Array[Tuple[K, V]] pairs
+
+pub SlowMap(Int capacity = 0) throws OutOfMemory
+{
+    keys = new(capacity)
+    values = new(capacity)
+
+    pairs = new(capacity)
+}
+
+override pub Tuple[K, V] next()
+{
+    Tuple[K, V] item = new(keys.get(Iterable.at), values.get(Iterable.at))
+    Iterable.at += 1
+    item
+}
+
+pub V get(K key) throws NotFound
+{
+    Long index = key.getHash() % pairs.length
+    Tuple[K, V] pair = pairs.get(index)
+    if (pair == null  or pair.get(0) != key)
+    {
+        throw NotFound
+    }
+    pair.get(1)
+}
+
+pub remove(K key) throws NotFound
+{
+    Long index = key.getHash() % pairs.length
+    Tuple[K, V] pair = pairs.get(index)
+    if (pair == null or pair.get(0) != key)
+    {
+        throw NotFound
+    }
+    pairs.set(index, null)
+
+    Bool foundKey = false
+    loop(at in keys.length)
+    {
+        if (foundKey)
+        {
+            keys.set(at - 1, keys.get(at))
+            values.set(at - 1, values.get(at))
+        }
+        else if (keys.get(at) == key)
+        {
+            foundKey = true
+        }
+    }
+    keys.pop()
+    values.pop()
+}
+
+pub set(K key, V value) throws OutOfMemory
+{
+    Long index = key.getHash() % pairs.length
+    Tuple[K, V] pair = pairs.get(index)
+    if (pair == null)
+    {
+        pairs.set(index, value)
+        keys.add(key)
+        values.add(value)
+    }
+    else
+    {
+        resizePairs()
+        set(key, value)
+    }
+}
+
+resizePairs()
+{
+    pairs = new((pairs.length * SCALE_FACTOR).ceiling)
+    loop(at in keys.length)
+    {
+        Long index = keys.get(at).getHash() % pairs.length
+        Tuple[K, V] pair = pairs.get(index)
+        if (pair == null)
+        {
+            pairs.set(index, values.get(at))
+        }
+        else
+        {
+            resizePairs()
+        }
+    }
+}

@@ -1,0 +1,3 @@
+package MirageCompiler/Tokenizer
+
+class TokenizerState(String symbolText, Int symbolStartColumn, Int lineNum, Int columnNum)

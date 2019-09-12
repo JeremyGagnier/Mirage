@@ -1,0 +1,138 @@
+%YAML 1.2
+---
+
+name: Mirage
+file_extensions:
+  - mirage
+scope: source.mirage
+
+variables:
+  symbols: (\+=|-=|/=|\*=|\+|-|\*|/|=>|<=|<|>=|>|==|!=)
+  named_ops: \b(not|or|and|mod)\b
+  integer: \b(0|[1-9][0-9]*)\b
+  floating_point: '{{integer}}(\.[0-9]+)?'
+  visibility: \b(public|private|protected)\b
+  base_type: \b(Bool|Char|String|Float|Double|Int|Long|Unit|Seq|Dict)(-\w+)*\b
+  type_mod: \b(abstract|override|var|public|private)\b
+  #reserved: \b(break|continue|in|throw)\b
+  reserved: \b(copy|break|continue|in|throw|class|object|package|throws)\b
+
+contexts:
+  main:
+    - match: \"
+      push: string
+
+    - match: \{
+      scope: punctuation.section.block.begin.mirage
+      push: braces
+    - match: \}
+      scope: invalid.illegal.stray-brace-end.mirage
+
+    - match: \(
+      scope: punctuation.section.brackets.begin.mirage
+      push: brackets
+    - match: \)
+      scope: invalid.illegal.stray-bracket-end.mirage
+
+    - match: //
+      push: comment
+
+    - match: '{{reserved}}'
+      scope: keyword.mirage
+
+    - match: '{{base_type}}'
+      scope: storage.type.mirage
+#    - match: \b'class'\b
+#      scope: storage.type.class.mirage
+#    - match: \b'object'\b
+#      scope: storage.type.object.mirage
+#    - match: \b'enum'\b
+#      scope: storage.type.enum.mirage
+
+    - match: '{{type_mod}}'
+      scope: storage.modifier.mirage
+
+    - match: '{{floating_point}}'
+      scope: constant.numeric.float.mirage
+    - match: '{{integer}}'
+      scope: constant.numeric.integer.mirage
+    - match: (true|false|Nil)
+      scope: constant.language.mirage
+
+    - match: '{{symbols}}'
+      scope: keyword.operator.mirage
+    - match: '{{named_ops}}'
+      scope: keyword.operator.word.mirage
+
+    - match: \b(import|if|else|loop|try|catch|switch|case)\b
+      scope: keyword.control.mirage
+#    - match: \b'import'\b
+#      scope: keyword.control.import.mirage
+#    - match: \b'if'\b
+#      scope: keyword.control.conditional.if.mirage
+#    - match: \b'else'\b
+#      scope: keyword.control.conditional.else.mirage
+#    - match: \b'loop'\b
+#      scope: keyword.control.loop.mirage
+#    - match: \b'try'\b
+#      scope: keyword.control.trycatch.try.mirage
+#    - match: \b'catch'\b
+#      scope: keyword.control.trycatch.catch.mirage
+#    - match: \b'switch'\b
+#      scope: keyword.control.flow.switch.mirage
+#    - match: \b'case'\b
+#      scope: keyword.control.flow.case.mirage
+
+    - match: \.\w+
+      scope: source.mirage
+
+    - match: ^enum\b
+      scope: keyword.mirage
+      push: enum
+
+  string:
+    - meta_scope: string.quoted.double.mirage
+    - match: \n
+      scope: invalid.illegal.mirage
+      pop: true
+    - match: \\.
+      scope: constant.other.mirage
+      #scope: constants.character.escape.mirage
+    - match: \"
+      pop: true
+
+  brackets:
+    - match: \)
+      scope: punctuation.section.brackets.end.mirage
+      pop: true
+    - include: main
+
+  braces:
+    - match: \}
+      scope: punctuation.section.block.end.mirage
+      pop: true
+    - include: main
+
+  comment:
+    - meta_scope: comment.line.double-slash.mirage
+    - match: \n
+      pop: true
+
+  enum:
+    - match: \ \w+$
+      push: enumValues
+    - match: .
+      scope: invalid.illegal.mirage
+
+  enumValues:
+    - match: ^\w+\b
+      scope: constant.other.mirage
+    - match: \s*=\s*
+      push: enumEquals
+    - match: .
+      scope: invalid.illegal.mirage
+
+  enumEquals:
+    - match: \n
+      pop: true
+    - include: main

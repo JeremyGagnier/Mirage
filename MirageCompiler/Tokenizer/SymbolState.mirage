@@ -1,0 +1,12 @@
+package MirageCompiler/Tokenizer
+
+enum SymbolState
+Comment
+Escaped
+Float
+Int
+IntDot
+Name
+String
+Symbol
+Whitespace

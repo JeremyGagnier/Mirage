@@ -1,0 +1,40 @@
+package MirageCompiler
+
+enum TokenType
+// Generic
+Symbol
+OpenArgument
+CloseArgument
+OpenCode
+CloseCode
+OpenTemplate
+CloseTemplate
+Newline
+Value
+Operator
+UniOp
+Comma
+Dot
+Class
+Object
+Enum
+If
+Else
+Equals
+
+// Specific
+Pub
+Var
+Readable
+MethodMod
+Loop
+New
+Package
+Import
+Throw
+Throws
+Break
+In
+Test
+Colon
+Slash

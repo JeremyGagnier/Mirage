@@ -33,25 +33,33 @@ TEST <= test
 WHERE <= where
 SHOULD <= should
 NEW <= new
+ENUM <= enum
 
-FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? TESTS                            \# Test file
-FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? CLASS_DEFN                       \# Only class
-FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? OBJ_DEFN                         \# Only object
-FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? OBJ_DEFN NEWLINE CLASS_DEFN      \# Object and class
+FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? TESTS                                    \# Test file
+FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? CLASS_DEFN                               \# Only class
+FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? OBJ_DEFN                                 \# Only object
+FILE => PACKAGE PACKAGE_PATH ENUM SYMBOL L_CURLY SYMBOL ENUM_DECLS? R_CURLY         \# Only enum
+FILE => PACKAGE PACKAGE_PATH IMPORT_DECLS? OBJ_DEFN NEWLINE CLASS_DEFN              \# Object and class
 
 PACKAGE_PATH => SYMBOL DOT PACKAGE_PATH                         \# Package spec
 PACKAGE_PATH => SYMBOL NEWLINE                                  \#
 IMPORT_DECLS => IMPORT PACKAGE_PATH IMPORT_DECLS?               \#
 
-TESTS => TEST SYMBOL L_CURLY TEST_CODE? R_CURLY                                                 \# Goes to test code
-OBJ_DEFN => OBJECT SYMBOL L_CURLY CODE? R_CURLY                                                 \# Simple object definition
-CLASS_DEFN => CLASS TYPE L_PAREN CLASS_PARAMS? R_PAREN TYPE_SPEC? L_CURLY CODE? R_CURLY         \# Complex class definition
+ENUM_DECLS => COMMA SYMBOL ENUM_DECLS?
+
+TESTS => TEST SYMBOL TEST_CODE?                                             \# Goes to test code
+OBJ_DEFN => OBJECT SYMBOL OBJ_CODE?                                         \# Goes to object code
+CLASS_DEFN => CLASS TYPE L_PAREN CLASS_PARAMS? R_PAREN TYPE_SPEC? CODE?     \# Complex class definition
 
 TEST_CODE => TEST_LINE MORE_TEST_CODE?      \# Test code
 MORE_TEST_CODE => NEWLINE TEST_CODE         \#
-
 TEST_LINE => SHOULD L_PAREN VALUE R_PAREN L_CURLY FN_CODE R_CURLY       \# Test
 TEST_LINE => VAR? TYPE SYMBOL EQUALS CALL                               \# Symbol definition
+
+OBJ_CODE => OBJ_LINE MORE_OBJ_CODE?     \# Obj code
+MORE_OBJ_CODE => NEWLINE OBJ_CODE       \#
+OBJ_LINE => LINE
+OBJ_LINE => ENUM SYMBOL L_CURLY SYMBOL ENUM_DECLS? R_CURLY
 
 OBJ_CODE => LINE MORE_OBJ_CODE?
 MORE_OBJ_CODE => NEWLINE OBJ_CODE
@@ -59,8 +67,8 @@ TYPE_SPEC => WHERE TYPE L_PAREN TYPE_CONSTRAINT R_PAREN TYPE_SPEC?      \# Each 
 TYPE_CONSTRAINT => TYPE COMMA TYPE_CONSTRAINT                           \# Each constraint is a type
 TYPE_CONSTRAINT => TYPE                                                 \#
 
-CLASS_PARAMS => SYMBOL COMMA CLASS_PARAMS       \# Class Params
-CLASS_PARAMS => SYMBOL                          \#
+CLASS_PARAMS => TYPE COMMA CLASS_PARAMS     \# Class Params
+CLASS_PARAMS => TYPE                        \#
 
 CODE => LINE MORE_CODE?         \# Class code
 MORE_CODE => NEWLINE CODE       \#
@@ -95,8 +103,9 @@ LOOP_CODE => FN_LINE MORE_LOOP_CODE?        \# Unpack loop code
 LOOP_CODE => BREAK MORE_LOOP_CODE?          \# Loop code can have a break
 MORE_LOOP_CODE => NEWLINE LOOP_CODE         \# Newline between lines
 
-CALL => L_PAREN CALL MORE_CALL? R_PAREN CALL? MORE_CALL?
+CALL => L_PAREN CALL MORE_CALL? R_PAREN MORE_CALL?
 CALL => L_PAREN PARAM_DEFS? R_PAREN L_CURLY FN_CODE R_CURLY         \# Lambda
+CALL => NEW L_PAREN PARAMS? R_PAREN MORE_CALL?
 CALL => RESULT MORE_CALL?
 CALL => UNIOP CALL                                                  \# Unary operation
 CALL => VALUE
@@ -105,7 +114,6 @@ MORE_CALL => DOT RESULT MORE_CALL?
 MORE_CALL => OP CALL
 
 RESULT => FETCH L_PAREN PARAMS? R_PAREN
-RESULT => NEW L_PAREN PARAMS? R_PAREN
 RESULT => FETCH
 
 FETCH => L_FETCH DOT R_FETCH        \# Chain dereference

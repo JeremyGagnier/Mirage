@@ -1,0 +1,40 @@
+// Monad.mirage
+abstract class Monad[T]
+Monad[S] :[S](Symbol[T, S] symbol)
+
+// Option.mirage
+abstract class Option[T] extends Monad[T]
+
+// Some.mirage
+final class Some[T](T value) extends Option[T]
+override Some[S] :[S](Symbol[T, S] symbol)
+{
+    Some(value.symbol)
+}
+
+// None.mirage
+final class None[T] extends Option[T]
+override None[S] :[S](Symbol[T, S] symbol)
+{
+    None
+}
+
+/**
+ * Example usage: studentOpt:name:equals("Lucy").getOrElse(false)
+ *
+ * Type at each step:
+ *      Option[Student] studentOpt = ...
+ *      Option[String] nameOpt = studentOpt:name
+ *      Option[Bool] isLucyOpt = nameOpt:equals("Lucy")
+ *      Bool existsAndIsLucy = isLucyOpt.getOrElse(false)
+ * 
+ * Should translate to:
+ *      if (studentOpt.exists)
+ *      {
+ *          studentOpt.get.name == "Lucy"
+ *      }
+ *      else
+ *      {
+ *          false
+ *      }
+ */
