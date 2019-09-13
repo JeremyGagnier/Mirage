@@ -6,6 +6,7 @@ Escaped
 Float
 Int
 IntDot
+IntDotError
 Name
 String
 Symbol

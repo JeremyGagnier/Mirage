@@ -13,23 +13,6 @@ String nameStarters = Constants.alphabet + "#$"
 String numberStarters = Constants.numbers
 String symbolStarters = validSymbolChars
 
-Dict[String, TokenType] symbolToTokenType = new Dict()
-{
-    add("(", TokenType.OpenArgument)
-    add(")", TokenType.CloseArgument)
-    add("{", TokenType.OpenCode)
-    add("}", TokenType.CloseCode)
-    add("(", TokenType.OpenArgument)
-    add("(", TokenType.OpenArgument)
-    add("(", TokenType.OpenArgument)
-    add("(", TokenType.OpenArgument)
-    add("(", TokenType.OpenArgument)
-    add("(", TokenType.OpenArgument)
-    add("(", TokenType.OpenArgument)
-    add("(", TokenType.OpenArgument)
-    add("(", TokenType.OpenArgument)
-}
-
 FSM[SymbolState, (String-1, TokenizerState), (Seq[Token], TokenizerState)] symbolFSM = FSM()
 {
     // Exclusivity isn't perfectly checked because that's likely impossible. It's checked by verifying that mutual
@@ -38,15 +21,17 @@ FSM[SymbolState, (String-1, TokenizerState), (Seq[Token], TokenizerState)] symbo
     // will change String-1 char's type to String-1-In#validNumberChars which has overlap because "." is also in
     // validNumberChars. Additionally String-1-Dot char would cause dead code detection on
     // if (not validNumberChars.contains(char)) { ... }.
-    addState(SymbolState.Comment,       commentAction,      exclusiveTransitions = true)
-    addState(SymbolState.Escaped,       addCharAction,      exclusiveTransitions = true,    mustTransition = true)
-    addState(SymbolState.Float,         addCharAction,      exclusiveTransitions = true)
-    addState(SymbolState.Int,           addCharAction,      exclusiveTransitions = true)
-    addState(SymbolState.IntDot,        addCharAction,      exclusiveTransitions = true,    mustTransition = true)
-    addState(SymbolState.Name,          addCharAction,      exclusiveTransitions = true)
-    addState(SymbolState.String,        addCharAction,      exclusiveTransitions = true)
-    addState(SymbolState.Symbol,        symbolAction,       exclusiveTransitions = true)
-    addState(SymbolState.Whitespace,    whitespaceAction,   exclusiveTransitions = true)
+    // An ephemeral state is an exclusive state that must transition. This is also compile time checked.
+    addExclusiveState(SymbolState.Comment,      commentAction)
+    addEphemeralState(SymbolState.Escaped,      addCharAction)
+    addExclusiveState(SymbolState.Float,        addCharAction)
+    addExclusiveState(SymbolState.Int,          addCharAction)
+    addEphemeralState(SymbolState.IntDot,       addCharAction)
+    addExclusiveState(SymbolState.IntDotError,  intDotErrorAction)
+    addExclusiveState(SymbolState.Name,         addCharAction)
+    addExclusiveState(SymbolState.String,       addCharAction)
+    addExclusiveState(SymbolState.Symbol,       symbolAction)
+    addExclusiveState(SymbolState.Whitespace,   whitespaceAction)
 
     addTransition(SymbolState.Whitespace,   SymbolState.Int,    whitespaceToInt)
     addTransition(SymbolState.Whitespace,   SymbolState.Name,   whitespaceToName)
@@ -70,9 +55,10 @@ FSM[SymbolState, (String-1, TokenizerState), (Seq[Token], TokenizerState)] symbo
     addTransition(SymbolState.String,   SymbolState.Escaped,    stringToEscaped)
     addTransition(SymbolState.Escaped,  SymbolState.String,     escapedToString)
 
-    addTransition(SymbolState.Int,      SymbolState.IntDot, intToIntDot)
-    addTransition(SymbolState.IntDot,   SymbolState.Float,  intDotToFloat)
-    addTransition(SymbolState.IntDot,   SymbolState.Name,   intDotToName)
+    addTransition(      SymbolState.Int,    SymbolState.IntDot,     intToIntDot)
+    addTransition(      SymbolState.IntDot, SymbolState.Float,      intDotToFloat)
+    addTransition(      SymbolState.IntDot, SymbolState.Name,       intDotToName)
+    addElseTransition(  SymbolState.IntDot, SymbolState.IntDotError)
 }
 
 Bool whitespaceToInt((String-1 char, TokenizerState state))
@@ -194,6 +180,13 @@ Bool escapedToString((String-1 char, TokenizerState state))
     (Nil, newState)
 }
 
+(Seq[Token], TokenizerState) intDotErrorAction(
+    SymbolState previousSymbolState,
+    (String-1 char, TokenizerState tokenizerState))
+{
+    throw TokenizerException(TokenizerExceptionType.UnexpectedDot, state.lineNum, state.columnNum, char)
+}
+
 (Seq[Token], TokenizerState) commentAction(
     SymbolState previousSymbolState,
     (String-1 char, TokenizerState tokenizerState))
@@ -205,41 +198,43 @@ Bool escapedToString((String-1 char, TokenizerState state))
 {
     if (tokenizerState.symbolText.size > 0)
     {
-        Option[Token] maybeToken = switch (previousSymbolState)
+        Option[TokenType] maybeTokenType = switch (previousSymbolState)
         case (SymbolState.Float)
         {
-            Some(Token(
-                TokenType.Float,
-                tokenizerState.symbolText,
-                tokenizerState.lineNum,
-                tokenizerState.symbolStartColumn))
+            Some(TokenType.Float)
         }
         case (SymbolState.Int)
         {
-            Some(Token(
-                TokenType.Int,
-                tokenizerState.symbolText,
-                tokenizerState.lineNum,
-                tokenizerState.symbolStartColumn))
+            Some(TokenType.Int)
         }
         case (SymbolState.Name)
         {
+            // Check if this is a keyword and use the appropriate token type
+            Some(TokenType.get(tokenizerState.symbolText).getOrElse(TokenType.Name))
         }
         case (SymbolState.String)
         {
-            Some(Token(
-                TokenType.String,
-                tokenizerState.symbolText,
-                tokenizerState.lineNum,
-                tokenizerState.symbolStartColumn))
+            Some(TokenType.String)
         }
         case (SymbolState.Symbol)
         {
+            // Get the approprtiate token type. If the compiler is powerful enough this exception can be determined to
+            // be impossible.
+            Some(TokenType.get(tokenizerState.symbolText).getOrElse(throw TokenizerException(
+                TokenizerExceptionType.UnknownSymbol,
+                tokenizerState.lineNum
+                tokenizerState.symbolStartColumn,
+                tokenizerState.symbolText)))
         }
         case
         {
             None
         }
+
+        Option[Token] maybeToken = maybeTokenType.map((TokenType type)
+            {
+                Token(type, tokenizerState.lineNum, tokenizerState.lineNum, tokenizerState.symbolStartColumn)
+            })
 
         TokenizerState newState = copy (tokenizerState)
         {
@@ -253,7 +248,8 @@ Bool escapedToString((String-1 char, TokenizerState state))
     {
         (None, tokenizerState)
     }
-} 
+}
+
 
 (Seq[Token], TokenizerState) symbolAction(
     SymbolState previousSymbolState,
@@ -300,22 +296,8 @@ Bool escapedToString((String-1 char, TokenizerState state))
 
 (Seq[Token], TokenizerState) step(String-1 char, (Seq[Token] tokens, TokenizerState state))
 {
-    (Seq[Token] newTokens, TokenizerState newState) = try
-        {
-            FSM.step((char, state))
-        }
-        catch (FSMException[SymbolState] fsmException)
-        {
-            switch ((fsmException.type, fsmException.state))
-            case ((FSMExceptionType.DidntTransition, SymbolState.IntDot))
-            {
-                throw TokenizerException(TokenizerExceptionType.UnexpectedDot, state.lineNum, state.columnNum, char)
-            }
-            case
-            {
-                throw TokenizerException(TokenizerExceptionType.Unknown, state.lineNum, state.columnNum, char)
-            }
-        }
+    (Seq[Token] newTokens, TokenizerState newState) = FSM.step((char, state))
+    
     (tokens.append(newTokens), newState)
 }
 
