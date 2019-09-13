@@ -1,0 +1,8 @@
+class Test
+
+Int x = 0
+
+Test(Int x)
+{
+    this.x = x
+}

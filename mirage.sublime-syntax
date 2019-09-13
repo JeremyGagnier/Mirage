@@ -12,7 +12,7 @@ variables:
   integer: \b(0|[1-9][0-9]*)\b
   floating_point: '{{integer}}(\.[0-9]+)?'
   visibility: \b(public|private|protected)\b
-  base_type: \b(Bool|Char|String|Float|Double|Int|Long|Unit|Seq|Dict)(-\w+)*\b
+  base_type: \b(Bool|Char|String|Float|Double|Int|Long|Unit|Seq|Dict|Some|Option)(-\w+)*\b
   type_mod: \b(abstract|override|var|public|private)\b
   #reserved: \b(break|continue|in|throw)\b
   reserved: \b(copy|break|continue|in|throw|class|object|package|throws)\b
@@ -56,7 +56,7 @@ contexts:
       scope: constant.numeric.float.mirage
     - match: '{{integer}}'
       scope: constant.numeric.integer.mirage
-    - match: (true|false|Nil)
+    - match: (true|false|Nil|None)
       scope: constant.language.mirage
 
     - match: '{{symbols}}'

@@ -1,40 +1,39 @@
 package MirageCompiler
 
 enum TokenType
-// Generic
-Symbol
-OpenArgument
-CloseArgument
-OpenCode
-CloseCode
-OpenTemplate
-CloseTemplate
-Newline
-Value
-Operator
-UniOp
-Comma
-Dot
-Class
-Object
-Enum
-If
-Else
-Equals
-
-// Specific
-Pub
-Var
-Readable
-MethodMod
-Loop
-New
-Package
-Import
-Throw
-Throws
-Break
-In
-Test
-Colon
-Slash
+Name
+OpenArgument    = Seq("(")
+CloseArgument   = Seq(")")
+OpenCode        = Seq("{")
+CloseCode       = Seq("}")
+OpenTemplate    = Seq("[")
+CloseTemplate   = Seq("]")
+Newline         = Seq("\n")
+Comma           = Seq(",")
+Dot             = Seq(".")
+Class           = Seq("class")
+Object          = Seq("object")
+Enum            = Seq("enum")
+If              = Seq("if")
+Else            = Seq("else")
+Equals          = Seq("=", "+=", "-=", "*=", "/=")
+Public          = Seq("public")
+Private         = Seq("private")
+Protected       = Seq("protected")
+Var             = Seq("var")
+MethodMod       = Seq("override", "abstract")
+Loop            = Seq("loop")
+Package         = Seq("package")
+Import          = Seq("import")
+Throw           = Seq("throw")
+Break           = Seq("break")
+In              = Seq("in")
+Test            = Seq("test")
+Colon           = Seq(":")
+Slash           = Seq("/")
+Dash            = Seq("-")
+Float
+Int
+String
+Operator        = Seq("+", "*", "and", "or", "mod", ">", "<", ">=", "<=", "==", "!=")
+UniOp           = Seq("not")

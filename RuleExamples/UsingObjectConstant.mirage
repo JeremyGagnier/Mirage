@@ -1,0 +1,12 @@
+object Test
+
+Int constant = 2
+
+class Test
+
+Int x = constant * 3
+
+Int testMethod(Int x)
+{
+    x * self.x * constant
+}

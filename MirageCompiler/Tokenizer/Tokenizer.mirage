@@ -13,6 +13,23 @@ String nameStarters = Constants.alphabet + "#$"
 String numberStarters = Constants.numbers
 String symbolStarters = validSymbolChars
 
+Dict[String, TokenType] symbolToTokenType = new Dict()
+{
+    add("(", TokenType.OpenArgument)
+    add(")", TokenType.CloseArgument)
+    add("{", TokenType.OpenCode)
+    add("}", TokenType.CloseCode)
+    add("(", TokenType.OpenArgument)
+    add("(", TokenType.OpenArgument)
+    add("(", TokenType.OpenArgument)
+    add("(", TokenType.OpenArgument)
+    add("(", TokenType.OpenArgument)
+    add("(", TokenType.OpenArgument)
+    add("(", TokenType.OpenArgument)
+    add("(", TokenType.OpenArgument)
+    add("(", TokenType.OpenArgument)
+}
+
 FSM[SymbolState, (String-1, TokenizerState), (Seq[Token], TokenizerState)] symbolFSM = FSM()
 {
     // Exclusivity isn't perfectly checked because that's likely impossible. It's checked by verifying that mutual
@@ -183,6 +200,60 @@ Bool escapedToString((String-1 char, TokenizerState state))
 {
     (Nil, tokenizerState)
 }
+
+(Option[Token], TokenizerState) maybeUnpackToken(TokenizerState tokenizerState, SymbolState previousSymbolState)
+{
+    if (tokenizerState.symbolText.size > 0)
+    {
+        Option[Token] maybeToken = switch (previousSymbolState)
+        case (SymbolState.Float)
+        {
+            Some(Token(
+                TokenType.Float,
+                tokenizerState.symbolText,
+                tokenizerState.lineNum,
+                tokenizerState.symbolStartColumn))
+        }
+        case (SymbolState.Int)
+        {
+            Some(Token(
+                TokenType.Int,
+                tokenizerState.symbolText,
+                tokenizerState.lineNum,
+                tokenizerState.symbolStartColumn))
+        }
+        case (SymbolState.Name)
+        {
+        }
+        case (SymbolState.String)
+        {
+            Some(Token(
+                TokenType.String,
+                tokenizerState.symbolText,
+                tokenizerState.lineNum,
+                tokenizerState.symbolStartColumn))
+        }
+        case (SymbolState.Symbol)
+        {
+        }
+        case
+        {
+            None
+        }
+
+        TokenizerState newState = copy (tokenizerState)
+        {
+            symbolText = ""
+            symbolStartColumn = columnNum
+        }
+
+        (maybeToken, newState)
+    }
+    else
+    {
+        (None, tokenizerState)
+    }
+} 
 
 (Seq[Token], TokenizerState) symbolAction(
     SymbolState previousSymbolState,
