@@ -1,6 +1,7 @@
 package MirageCompiler/Tokenizer
 
-enum SymbolState
+// This is the type of token being parsed by the tokenizer
+enum TokenState
 Comment
 Escaped
 Float

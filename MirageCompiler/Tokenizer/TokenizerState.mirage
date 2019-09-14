@@ -1,3 +1,4 @@
 package MirageCompiler/Tokenizer
 
+// This is the running state of the tokenizer
 class TokenizerState(String symbolText, Int symbolStartColumn, Int lineNum, Int columnNum)
