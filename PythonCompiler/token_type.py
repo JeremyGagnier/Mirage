@@ -33,6 +33,8 @@ class TokenType:
     INT = "INT"
     STRING = "STRING"
     NAME = "NAME"
+    BIN_OP = "BIN_OP"
+    UNI_OP = "UNI_OP"
 
     TOKEN_TYPE_TO_SYMBOLS = {
         "OPEN_ARGUMENT": ["("],
@@ -68,7 +70,9 @@ class TokenType:
         "FLOAT": [],
         "INT": [],
         "STRING": [],
-        "NAME": []}
+        "NAME": [],
+        "BIN_OP": ["+", "*", "^", "and", "or", "mod"],
+        "UNI_OP": ["not"]}
 
     SYMBOL_TO_TOKEN_TYPES = {}
     for (token_type, tokens) in TOKEN_TYPE_TO_SYMBOLS.items():

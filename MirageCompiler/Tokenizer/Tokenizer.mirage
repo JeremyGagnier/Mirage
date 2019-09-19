@@ -6,7 +6,7 @@ import MirageCompiler/{Token, TokenType}
 object Tokenizer
 
 String validNameChars = Constants.alphabet + Constants.numbers + "_"
-String validNumberChars = Constants.numbers + "."
+String validNumberChars = Constants.numbers
 String validSymbolChars = "()[]{}<>+-*/=,."
 
 String nameStarters = Constants.alphabet + "#$"
@@ -43,13 +43,13 @@ FSM[TokenState, (String-1, TokenizerState), (Seq[Token], TokenizerState)] symbol
     addTransition(TokenState.Float, TokenState.Whitespace, toWhitespace)
     addTransition(TokenState.Float, TokenState.Symbol, toSymbol)
     addTransition(TokenState.Float, TokenState.Float, numberToNumber)
-    addElseTransition(TokenState.Float, TokenState.FloatError)
+    addElseTransition(TokenState.Float, TokenState.NumberError)
 
     addTransition(TokenState.Int, TokenState.Whitespace, toWhitespace)
     addTransition(TokenState.Int, TokenState.Symbol, intToSymbol)
     addTransition(TokenState.Int, TokenState.Int, numberToNumber)
     addTransition(TokenState.Int, TokenState.IntDot, intToIntDot)
-    addElseTransition(TokenState.Int, TokenState.IntError)
+    addElseTransition(TokenState.Int, TokenState.NumberError)
 
     addTransition(TokenState.IntDot, TokenState.Float, intDotToFloat)
     addTransition(TokenState.IntDot, TokenState.Name, intDotToName)
@@ -218,46 +218,60 @@ Bool stringToEscaped((String-1 char, TokenizerState state))
     (Nil, tokenizerState)
 }
 
-(Option[Token], TokenizerState) maybeUnpackToken(TokenizerState tokenizerState, TokenState previousTokenState)
+Seq[TokenType] parseSymbols(TokenizerState tokenizerState)
+{
+    tokenizerState.symbolText
+        .split((String text)
+        {
+            text.size - 0.until(text.size).find((Int i)
+                {
+                    TokenType.get(text.split(0, text.size - i))
+                })
+        })
+        .map((String text)
+        {
+            TokenType.get(text).getOrElse(throw TokenizerException(
+                TokenizerExceptionType.UnknownSymbol,
+                tokenizerState.lineNum
+                tokenizerState.symbolStartColumn,
+                tokenizerState.symbolText))
+        })
+}
+
+(Seq[Token], TokenizerState) unpackTokens(TokenizerState tokenizerState, TokenState previousTokenState)
 {
     if (tokenizerState.symbolText.size > 0)
     {
-        Option[TokenType] maybeTokenType = switch (previousTokenState)
+        Seq[TokenType] tokenTypes = switch (previousTokenState)
         case (TokenState.Float)
         {
-            Some(TokenType.Float)
+            Seq(TokenType.Float)
         }
         case (TokenState.Int)
         {
-            Some(TokenType.Int)
+            Seq(TokenType.Int)
         }
         case (TokenState.Name)
         {
             // Check if this is a keyword and use the appropriate token type
-            Some(TokenType.get(tokenizerState.symbolText).getOrElse(TokenType.Name))
+            Seq(TokenType.get(tokenizerState.symbolText).getOrElse(TokenType.Name))
         }
         case (TokenState.String)
         {
-            Some(TokenType.String)
+            Seq(TokenType.String)
         }
         case (TokenState.Symbol)
         {
-            // Get the approprtiate token type. If the compiler is powerful enough this exception can be determined to
-            // be impossible.
-            Some(TokenType.get(tokenizerState.symbolText).getOrElse(throw TokenizerException(
-                TokenizerExceptionType.UnknownSymbol,
-                tokenizerState.lineNum
-                tokenizerState.symbolStartColumn,
-                tokenizerState.symbolText)))
+            parseSymbols(tokenizerState)
         }
         case
         {
-            None
+            Nil
         }
 
-        Option[Token] maybeToken = maybeTokenType.map((TokenType type)
+        Seq[Token] tokens = tokenTypes.map((TokenType type)
             {
-                Token(type, tokenizerState.lineNum, tokenizerState.lineNum, tokenizerState.symbolStartColumn)
+                Token(type, tokenizerState.symbolText, tokenizerState.lineNum, tokenizerState.symbolStartColumn)
             })
 
         TokenizerState newState = copy (tokenizerState)
@@ -266,11 +280,11 @@ Bool stringToEscaped((String-1 char, TokenizerState state))
             symbolStartColumn = columnNum
         }
 
-        (maybeToken, newState)
+        (tokens, newState)
     }
     else
     {
-        (None, tokenizerState)
+        (Nil, tokenizerState)
     }
 }
 
@@ -279,13 +293,13 @@ Bool stringToEscaped((String-1 char, TokenizerState state))
     TokenState previousTokenState,
     (String-1 char, TokenizerState tokenizerState))
 {
-    (Option[Token] maybeToken, TokenizerState unpackedState) = if (previousTokenState == TokenState.Symbol)
+    (Seq[Token] tokens, TokenizerState unpackedState) = if (previousTokenState == TokenState.Symbol)
     {
-        (None, tokenizerState)
+        (Nil, tokenizerState)
     }
     else
     {
-        maybeUnpackToken(tokenizerState, previousTokenState)
+        unpackTokens(tokenizerState, previousTokenState)
     }
 
     TokenizerState newState = copy (unpackedState)
@@ -294,20 +308,21 @@ Bool stringToEscaped((String-1 char, TokenizerState state))
         columnNum += 1
     }
 
-    (maybeToken.getOrElse(Nil), newState)
+    (tokens, newState)
 }
 
 (Seq[Token], TokenizerState) whitespaceAction(
     TokenState previousTokenState,
     (String-1 char, TokenizerState tokenizerState))
 {
-    (Option[Token] maybePreviousToken, TokenizerState unpackedState) = maybeUnpackToken(tokenizerState, previousTokenState)
+    (Seq[Token] previousTokens, TokenizerState unpackedState) = unpackTokens(tokenizerState, previousTokenState)
     (Option[Token] maybeToken, TokenizerState newTokenizerState) = if (char == "\n")
     {
         Token newToken = Some(Token(TokenType.Newline, "\\n", unpackedState.lineNum, unpackedState.columnNum))
         TokenizerState newState = copy (unpackedState)
         {
             lineNum += 1
+            symbolStartColumn = 1
             columnNum = 1
         }
         (Some(newToken), newState)
@@ -316,12 +331,13 @@ Bool stringToEscaped((String-1 char, TokenizerState state))
     {
         TokenizerState newState = copy (unpackedState)
         {
+            symbolStartColumn += 1
             columnNum += 1
         }
         (None, newState)
     }
 
-    (Seq(maybePreviousToken, maybeToken).flatten, newTokenizerState)
+    (previousTokens.append(maybeToken), newTokenizerState)
 }
 
 (Seq[Token], TokenizerState) step(String-1 char, (Seq[Token] tokens, TokenizerState state))
