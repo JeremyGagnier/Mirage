@@ -1,0 +1,11 @@
+class TokenState:
+    COMMENT = "COMMENT"
+    ESCAPED = "ESCAPED"
+    FLOAT = "FLOAT"
+    INT = "INT"
+    INT_DOT = "INT_DOT"
+    INT_DOT_ERROR = "INT_DOT_ERROR"
+    NAME = "NAME"
+    STRING = "STRING"
+    SYMBOL = "SYMBOL"
+    WHITESPACE = "WHITESPACE"

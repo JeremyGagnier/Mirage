@@ -9,6 +9,9 @@ Int
 IntDot
 IntDotError
 Name
+NameError
+NumberError
 String
 Symbol
+SymbolError
 Whitespace

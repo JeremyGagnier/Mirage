@@ -22,76 +22,95 @@ FSM[TokenState, (String-1, TokenizerState), (Seq[Token], TokenizerState)] symbol
     // validNumberChars. Additionally String-1-Dot char would cause dead code detection on
     // if (not validNumberChars.contains(char)) { ... }.
     // An ephemeral state is an exclusive state that must transition. This is also compile time checked.
-    addExclusiveState(TokenState.Comment,       commentAction)
-    addEphemeralState(TokenState.Escaped,       addCharAction)
-    addExclusiveState(TokenState.Float,         addCharAction)
-    addExclusiveState(TokenState.Int,           addCharAction)
-    addEphemeralState(TokenState.IntDot,        addCharAction)
-    addExclusiveState(TokenState.IntDotError,   intDotErrorAction)
-    addExclusiveState(TokenState.Name,          addCharAction)
-    addExclusiveState(TokenState.String,        addCharAction)
-    addExclusiveState(TokenState.Symbol,        symbolAction)
-    addExclusiveState(TokenState.Whitespace,    whitespaceAction)
+    addExclusiveState(TokenState.Comment, commentAction)
+    addEphemeralState(TokenState.Escaped, addCharAction)
+    addExclusiveState(TokenState.Float, addCharAction)
+    addExclusiveState(TokenState.Int, addCharAction)
+    addEphemeralState(TokenState.IntDot, addCharAction)
+    addExclusiveState(TokenState.IntDotError, intDotErrorAction)
+    addExclusiveState(TokenState.Name, addCharAction)
+    addExclusiveState(TokenState.NameError, nameErrorAction)
+    addExclusiveState(TokenState.NumberError, numberErrorAction)
+    addExclusiveState(TokenState.String, addCharAction)
+    addExclusiveState(TokenState.Symbol, symbolAction)
+    addExclusiveState(TokenState.SymbolError, symbolErrorAction)
+    addExclusiveState(TokenState.Whitespace, whitespaceAction)
 
-    addTransition(TokenState.Whitespace,    TokenState.Int,     whitespaceToInt)
-    addTransition(TokenState.Whitespace,    TokenState.Name,    whitespaceToName)
-    addTransition(TokenState.Whitespace,    TokenState.String,  whitespaceToString)
-    addTransition(TokenState.Whitespace,    TokenState.Symbol,  toSymbol)
+    addTransition(TokenState.Comment, TokenState.Whitespace, commentToWhitespace)
 
-    addTransition(TokenState.Comment,   TokenState.Whitespace,  commentToWhitespace)
-    addTransition(TokenState.Float,     TokenState.Whitespace,  floatToWhitespace)
-    addTransition(TokenState.Int,       TokenState.Whitespace,  intToWhitespace)
-    addTransition(TokenState.Name,      TokenState.Whitespace,  nameToWhitespace)
-    addTransition(TokenState.String,    TokenState.Whitespace,  stringToWhitespace)
-    addTransition(TokenState.Symbol,    TokenState.Whitespace,  symbolToWhitespace)
+    addElseTransition(TokenState.Escaped, TokenState.String)
 
-    addTransition(TokenState.Float,     TokenState.Symbol,  toSymbol)
-    addTransition(TokenState.Int,       TokenState.Symbol,  toSymbol)
-    addTransition(TokenState.Name,      TokenState.Symbol,  toSymbol)
-    addTransition(TokenState.String,    TokenState.Symbol,  toSymbol)
+    addTransition(TokenState.Float, TokenState.Whitespace, toWhitespace)
+    addTransition(TokenState.Float, TokenState.Symbol, toSymbol)
+    addTransition(TokenState.Float, TokenState.Float, numberToNumber)
+    addElseTransition(TokenState.Float, TokenState.FloatError)
 
-    addTransition(TokenState.Symbol,    TokenState.Comment, symbolToComment)
+    addTransition(TokenState.Int, TokenState.Whitespace, toWhitespace)
+    addTransition(TokenState.Int, TokenState.Symbol, intToSymbol)
+    addTransition(TokenState.Int, TokenState.Int, numberToNumber)
+    addTransition(TokenState.Int, TokenState.IntDot, intToIntDot)
+    addElseTransition(TokenState.Int, TokenState.IntError)
 
-    addTransition(      TokenState.String,  TokenState.Escaped, stringToEscaped)
-    addElseTransition(  TokenState.Escaped, TokenState.String)
+    addTransition(TokenState.IntDot, TokenState.Float, intDotToFloat)
+    addTransition(TokenState.IntDot, TokenState.Name, intDotToName)
+    addElseTransition(TokenState.IntDot, TokenState.IntDotError)
 
-    addTransition(      TokenState.Int,     TokenState.IntDot,  intToIntDot)
-    addTransition(      TokenState.IntDot,  TokenState.Float,   intDotToFloat)
-    addTransition(      TokenState.IntDot,  TokenState.Name,    intDotToName)
-    addElseTransition(  TokenState.IntDot,  TokenState.IntDotError)
+    addTransition(TokenState.Name, TokenState.Whitespace, toWhitespace)
+    addTransition(TokenState.Name, TokenState.Symbol, toSymbol)
+    addTransition(TokenState.Name, TokenState.Name, nameToName)
+    addElseTransition(TokenState.Name, TokenState.NameError)
+
+    addTransition(TokenState.String, TokenState.Whitespace, stringToWhitespace)
+    addTransition(TokenState.String, TokenState.Symbol, toSymbol)
+    addTransition(TokenState.String, TokenState.Escaped, stringToEscaped)
+
+    addTransition(TokenState.Symbol, TokenState.Comment, symbolToComment)
+    addTransition(TokenState.Symbol, TokenState.Int, toInt)
+    addTransition(TokenState.Symbol, TokenState.Name, toName)
+    addTransition(TokenState.Symbol, TokenState.String, toString)
+    addTransition(TokenState.Symbol, TokenState.Symbol, symbolToSymbol)
+    addTransition(TokenState.Symbol, TokenState.Whitespace, toWhitespace)
+    addElseTransition(TokenState.Symbol, TokenState.SymbolError)
+
+    addTransition(TokenState.Whitespace, TokenState.Int, toInt)
+    addTransition(TokenState.Whitespace, TokenState.Name, toName)
+    addTransition(TokenState.Whitespace, TokenState.String, toString)
+    addTransition(TokenState.Whitespace, TokenState.Symbol, toSymbol)
 }
 
-Bool whitespaceToInt((String-1 char, TokenizerState state))
+Bool toInt((String-1 char, TokenizerState state))
 {
     numberStarters.contains(char)
 }
 
-Bool whitespaceToName((String-1 char, TokenizerState state))
+Bool toName((String-1 char, TokenizerState state))
 {
     nameStarters.contains(char)
 }
 
-Bool whitespaceToString((String-1 char, TokenizerState state))
+Bool toString((String-1 char, TokenizerState state))
 {
     char == "\""
 }
 
-Bool toWhitespace((String-1 char, TokenizerState state))(TokenizerExceptionType exceptionType, Fn[String-1, Bool] isInvalidFn)
+Bool numberToNumber((String-1 char, TokenizerState state))
 {
-    switch (char)
-    case ("\n")
-    case (" ")
-    {
-        true
-    }
-    case (isInvalidFn)
-    {
-        throw TokenizerException(exceptionType, state.lineNum, state.columnNum, char)
-    }
-    case
-    {
-        false
-    }
+    validNumberChars.contains(char)
+}
+
+Bool nameToName((String-1 char, TokenizerState state))
+{
+    validNameChars.contains(char)
+}
+
+Bool symbolToSymbol((String-1 char, TokenizerState state))
+{
+    validSymbolChars.contains(char)
+}
+
+Bool toWhitespace((String-1 char, TokenizerState state))
+{
+    char == "\n" or char == " "
 }
 
 Bool commentToWhitespace((String-1 char, TokenizerState state))
@@ -115,22 +134,6 @@ Bool stringToWhitespace((String-1 char, TokenizerState state))
         false
     }
 }
-
-Fn[(String-1, TokenizerState), Bool] floatToWhitespace = toWhitespace(
-    TokenizerExceptionType.BadCharInNumber,
-    (String-1 char) { not validNumberChars.contains(char) })
-
-Fn[(String-1, TokenizerState), Bool] intToWhitespace = toWhitespace(
-    TokenizerExceptionType.BadCharInNumber,
-    (String-1 char) { not validNumberChars.contains(char) })
-
-Fn[(String-1, TokenizerState), Bool] stringToWhitespace = toWhitespace(
-    TokenizerExceptionType.BadCharInName,
-    (String-1 char) { not validNameChars.contains(char) })
-
-Fn[(String-1, TokenizerState), Bool] symbolToWhitespace = toWhitespace(
-    TokenizerExceptionType.BadCharInSymbol,
-    (String-1 char) { not validSymbolChars.contains(char) })
 
 Bool intToIntDot((String-1 char, TokenizerState state))
 {
@@ -157,6 +160,11 @@ Bool toSymbol((String-1 char, TokenizerState state))
     symbolStarters.contains(char)
 }
 
+Bool intToSymbol((String-1 char, TokenizerState state))
+{
+    char != "." and symbolStarters.contains(char)
+}
+
 Bool stringToEscaped((String-1 char, TokenizerState state))
 {
     char == "\\"
@@ -180,6 +188,27 @@ Bool stringToEscaped((String-1 char, TokenizerState state))
     (String-1 char, TokenizerState tokenizerState))
 {
     throw TokenizerException(TokenizerExceptionType.UnexpectedDot, state.lineNum, state.columnNum, char)
+}
+
+(Seq[Token], TokenizerState) numberErrorAction(
+    TokenState previousTokenState,
+    (String-1 char, TokenizerState tokenizerState))
+{
+    throw TokenizerException(TokenizerExceptionType.BadCharInNumber, state.lineNum, state.columnNum, char)
+}
+
+(Seq[Token], TokenizerState) nameErrorAction(
+    TokenState previousTokenState,
+    (String-1 char, TokenizerState tokenizerState))
+{
+    throw TokenizerException(TokenizerExceptionType.BadCharInName, state.lineNum, state.columnNum, char)
+}
+
+(Seq[Token], TokenizerState) symbolErrorAction(
+    TokenState previousTokenState,
+    (String-1 char, TokenizerState tokenizerState))
+{
+    throw TokenizerException(TokenizerExceptionType.BadCharInSymbol, state.lineNum, state.columnNum, char)
 }
 
 (Seq[Token], TokenizerState) commentAction(
@@ -272,27 +301,24 @@ Bool stringToEscaped((String-1 char, TokenizerState state))
     TokenState previousTokenState,
     (String-1 char, TokenizerState tokenizerState))
 {
-    // TODO
     (Option[Token] maybePreviousToken, TokenizerState unpackedState) = maybeUnpackToken(tokenizerState, previousTokenState)
-    (Option[Token] maybeToken, TokenizerState newTokenizerState) = switch (char)
-    case ("\n")
+    (Option[Token] maybeToken, TokenizerState newTokenizerState) = if (char == "\n")
     {
         Token newToken = Some(Token(TokenType.Newline, "\\n", unpackedState.lineNum, unpackedState.columnNum))
         TokenizerState newState = copy (unpackedState)
         {
             lineNum += 1
             columnNum = 1
-            singleSlash = false
         }
         (Some(newToken), newState)
     }
-    case (" ")
+    else
     {
-
-    }
-    case
-    {
-
+        TokenizerState newState = copy (unpackedState)
+        {
+            columnNum += 1
+        }
+        (None, newState)
     }
 
     (Seq(maybePreviousToken, maybeToken).flatten, newTokenizerState)
@@ -307,5 +333,6 @@ Bool stringToEscaped((String-1 char, TokenizerState state))
 
 Seq[Token] tokenize(String plaintext) throws TokenizerException
 {
-    plaintext.fold((Nil, TokenizerState("", 1, 1, 1)), step)
+    (Seq[Token] tokens, TokenizerState state) = (plaintext + "\n").fold((Nil, TokenizerState("", 1, 1, 1)), step)
+    tokens
 }

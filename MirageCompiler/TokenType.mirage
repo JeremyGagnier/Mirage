@@ -1,7 +1,6 @@
 package MirageCompiler
 
 enum TokenType
-Name
 OpenArgument    = Seq("(")
 CloseArgument   = Seq(")")
 OpenCode        = Seq("{")
@@ -35,5 +34,4 @@ Dash            = Seq("-")
 Float
 Int
 String
-Operator        = Seq("+", "*", "and", "or", "mod", ">", "<", ">=", "<=", "==", "!=")
-UniOp           = Seq("not")
+Name
