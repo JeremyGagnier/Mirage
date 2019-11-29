@@ -1,5 +1,3 @@
-package MirageCompiler/Tokenizer
-
 enum TokenizerExceptionType
 BadCharInName =         "{0}:{1} bad character when parsing name: {2}"
 BadCharInNumber =       "{0}:{1} bad character when parsing number: {2}"

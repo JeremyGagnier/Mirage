@@ -1,4 +1,4 @@
-from Tokenizer.tokenizer import tokenize
+from tokenizer.tokenizer import tokenize
 
 tokens = tokenize("""
 test

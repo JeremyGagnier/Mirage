@@ -1,0 +1,7 @@
+object Token
+Token apply(TokenType type, TokenizerState state)
+{
+    Token(type, state.symbolText, state.lineNum, state.symbolStartColumn)
+}
+
+class Token(TokenType type, String value, Int lineNum, Int columnNum)

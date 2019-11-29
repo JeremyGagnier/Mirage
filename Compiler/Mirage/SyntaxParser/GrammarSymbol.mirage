@@ -1,0 +1,12 @@
+enum GrammarSymbol
+Base[TokenType]
+Maybe[GrammarSymbol]
+File
+ImportDeclarations
+Tests
+EnumValues
+EnumFixedValue
+EnumTypeOrValue
+ObjectDefinition
+ClassDefinition
+Call

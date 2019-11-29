@@ -34,6 +34,12 @@ contexts:
     - match: \)
       scope: invalid.illegal.stray-bracket-end.mirage
 
+    - match: \[
+      push: square_brackets
+    - match: \]
+      scope: invalid.illegal.stray-bracket-end.mirage
+
+
     - match: //
       push: comment
 
@@ -113,26 +119,84 @@ contexts:
       pop: true
     - include: main
 
+  square_brackets:
+    - match: \[
+      push: square_brackets
+    - match: \]
+      pop: true
+    - match: \,
+      scope: source.mirage
+    - match: .
+      scope: storage.type.mirage
+
   comment:
     - meta_scope: comment.line.double-slash.mirage
     - match: \n
       pop: true
 
   enum:
-    - match: \ \w+$
-      push: enumValues
+    - match: \ \w+
+      scope: storage.type.mirage
+    - match: \[
+      push: type
+    - match: \n
+      push: enumValueName
     - match: .
       scope: invalid.illegal.mirage
 
-  enumValues:
+  enumValueName:
     - match: ^\w+\b
       scope: constant.other.mirage
+      push: enumAfterName
+
+  enumAfterName:
+    - match: \[
+      push: enumTypeName
     - match: \s*=\s*
       push: enumEquals
+    - match: \s*//.*
+      scope: comment.line.double-slash.mirage
+    - match: \n
+      pop: true
+    - match: .
+      scope: invalid.illegal.mirage
+
+  enumTypeName:
+    - match: \w+\b
+      scope: storage.type.mirage
+      push: enumEnd
+    - match: .
+      scope: invalid.illegal.mirage
+
+  enumEnd:
+    - match: \]\s*\n
+      push: enumValueName
+    - match: \n
+      scope: invalid.illegal.mirage
+      push: enumValueName
     - match: .
       scope: invalid.illegal.mirage
 
   enumEquals:
     - match: \n
-      pop: true
+      push: enumValueName
     - include: main
+
+  type:
+    - match: \b\w+(-\w+)*\b
+      scope: storage.type.mirage
+    - match: \s*\,\s*
+      scope: source.mirage
+    - match: \[
+      push: type
+    - match: \]
+      pop: true
+    - match: \(
+      push: typeTuple
+    - match: .
+      scope: invalid.illegal.mirage
+
+  typeTuple:
+    - match: \)
+      pop: true
+    - include: type

@@ -1,5 +1,3 @@
-package MirageCompiler/Tokenizer
-
 // This is the type of token being parsed by the tokenizer
 enum TokenState
 Comment

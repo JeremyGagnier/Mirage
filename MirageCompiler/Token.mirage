@@ -1,3 +1,0 @@
-package MirageCompiler
-
-class Token(TokenType type, String value, Int lineNum, Int columnNum)

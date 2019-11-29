@@ -1,6 +1,4 @@
-package MirageCompiler
-
-enum TokenType
+enum TokenType[Seq[String]]
 OpenArgument    = Seq("(")
 CloseArgument   = Seq(")")
 OpenCode        = Seq("{")

@@ -47,7 +47,7 @@ IMPORT_DECLS => IMPORT PACKAGE_PATH IMPORT_DECLS?               \#
 
 ENUM_DECLS => COMMA SYMBOL ENUM_DECLS?
 
-TESTS => TEST SYMBOL TEST_CODE?                                             \# Goes to test code
+TESTS => TEST SYMBOL TEST_CODE? TESTS?                                      \# Goes to test code
 OBJ_DEFN => OBJECT SYMBOL OBJ_CODE?                                         \# Goes to object code
 CLASS_DEFN => CLASS TYPE L_PAREN CLASS_PARAMS? R_PAREN TYPE_SPEC? CODE?     \# Complex class definition
 

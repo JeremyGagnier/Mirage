@@ -137,13 +137,22 @@ def comment_action(previous_token_state, char_and_tokenizer_state):
     return ([], tokenizer_state)
 
 def parse_symbols(tokenizer_state):
-    token_types = []
+    def reduce_splits(char_count_and_tokens, symbol_text):
+        (char_count, tokens) = char_count_and_tokens
+        new_token = Token(
+            TokenType.SYMBOL_TO_TOKEN_TYPES[symbol_text],
+            symbol_text,
+            tokenizer_state.line_num,
+            tokenizer_state.token_start_column + char_count)
+        return (char_count + len(symbol_text), tokens + [new_token])
+
+    splits = []
     text = tokenizer_state.token_text
     while (text != ""):
         for i in range(0, len(text)):
             from_end = len(text) - i
             if text[:from_end] in TokenType.SYMBOL_TO_TOKEN_TYPES:
-                token_types.append(TokenType.SYMBOL_TO_TOKEN_TYPES[text[:from_end]])
+                splits.append(text[:from_end])
                 text = text[from_end:]
                 break
         else:
@@ -153,33 +162,24 @@ def parse_symbols(tokenizer_state):
                 tokenizer_state.column_num,
                 text)
 
-    return token_types
+    return reduce(reduce_splits, splits, (0, []))[1]
 
 def unpack_tokens(tokenizer_state, previous_token_state):
     if len(tokenizer_state.token_text) > 0:
-        token_types = []
+        tokens = []
         if previous_token_state == TokenState.FLOAT:
-            token_types = [TokenType.FLOAT]
+            tokens = [Token.apply(TokenType.FLOAT, tokenizer_state)]
         elif previous_token_state == TokenState.INT:
-            token_types = [TokenType.INT]
+            tokens = [Token.apply(TokenType.INT, tokenizer_state)]
         elif previous_token_state == TokenState.NAME:
             if tokenizer_state.token_text in TokenType.SYMBOL_TO_TOKEN_TYPES:
-                token_types = [TokenType.SYMBOL_TO_TOKEN_TYPES[tokenizer_state.token_text]]
+                tokens = [Token.apply(TokenType.SYMBOL_TO_TOKEN_TYPES[tokenizer_state.token_text], tokenizer_state)]
             else:
-                token_types = [TokenType.NAME]
+                tokens = [Token.apply(TokenType.NAME, tokenizer_state)]
         elif previous_token_state == TokenState.STRING:
-            token_types = [TokenType.STRING]
+            tokens = [Token.apply(TokenType.STRING, tokenizer_state)]
         elif previous_token_state == TokenState.SYMBOL:
-            token_types = parse_symbols(tokenizer_state)
-
-        # TODO: Fix token contents when there are multiple token types
-        tokens = []
-        for token_type in token_types:
-            tokens.append(Token(
-                token_type,
-                tokenizer_state.token_text,
-                tokenizer_state.line_num,
-                tokenizer_state.token_start_column))
+            tokens = parse_symbols(tokenizer_state)
 
         new_tokenizer_state = TokenizerState(
             "",

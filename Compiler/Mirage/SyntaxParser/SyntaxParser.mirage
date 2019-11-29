@@ -1,0 +1,32 @@
+object SyntaxParser
+
+L1Table BuildL1Table()
+{
+    Seq[GrammarSymbol-Not[$Maybe, $Base]]-Distinct transitionalSymbols = GrammarSymbol.symbols.filter((GrammarSymbol symbol)
+    {
+        symbol.type != GrammarSymbol.Maybe and symbol.type != GrammarSymbol.Base
+    })
+
+    transitionalSymbols.map((GrammarSymbol-Not[Maybe, Base] transitionalSymbol)
+    {
+        GrammarSymbol.Base.symbols.map((GrammarSymbol-Is[$Base] tokenType)
+        {
+            Grammar.values.flatMap(((GrammarSymbol fromSymbol, Seq[GrammarSymbol] toSymbols))
+            {
+                if (fromSymbol == transitionalSymbol)
+                {
+                    Some(toSymbols)
+                }
+                else
+                {
+                    None
+                }
+            })
+        })
+    })
+}
+
+AST BuildAbstractSyntaxTree(Seq[Token] tokens)
+{
+    
+}
