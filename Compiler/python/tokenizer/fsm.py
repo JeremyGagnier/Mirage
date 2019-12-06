@@ -26,12 +26,15 @@ class FSM():
 
     def step(self, data):
         previous_state = self.state
-        for (state, predicate) in self.transitions[self.state]:
-            if predicate(data):
-                self.state = state
-                break
-        else:
-            if self.state in self.else_transitions:
-                self.state = self.else_transitions[self.state]
+        transitioned = False
+        if self.state in self.transitions:
+            for (state, predicate) in self.transitions[self.state]:
+                if predicate(data):
+                    transitioned = True
+                    self.state = state
+                    break
+
+        if not transitioned and self.state in self.else_transitions:
+            self.state = self.else_transitions[self.state]
 
         return self.states[self.state](previous_state, data)

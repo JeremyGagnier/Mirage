@@ -59,7 +59,6 @@ FSM[TokenState, (String-1, TokenizerState), (Seq[Token], TokenizerState)] symbol
     addElseTransition(Name, NameError)
 
     addTransition(String, Whitespace, stringToWhitespace)
-    addTransition(String, Symbol, toSymbol)
     addTransition(String, Escaped, stringToEscaped)
 
     addTransition(Symbol, Comment, symbolToComment)
@@ -103,7 +102,7 @@ Bool nameToName((String-1 char, TokenizerState state))
 
 Bool symbolToSymbol((String-1 char, TokenizerState state))
 {
-    validSymbolChars.contains(char)
+    validSymbolChars.contains(char) and not symbolToComment((char, state))
 }
 
 Bool toWhitespace((String-1 char, TokenizerState state))
@@ -268,7 +267,12 @@ Seq[Token] parseSymbols(TokenizerState tokenizerState)
         }
         case (TokenState.String)
         {
-            Seq(Token.apply(String, tokenizerState))
+            Token stringToken = Token(
+                String,
+                tokenizerState.symbolText + "\"",
+                tokenizerState.lineNum,
+                tokenizerState.symbolStartColumn)
+            Seq(stringToken)
         }
         case (TokenState.Symbol)
         {

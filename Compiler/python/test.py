@@ -1,11 +1,10 @@
 from tokenizer.tokenizer import tokenize
 
-tokens = tokenize("""
-test
-123
-123.456
-(Int a) { a + 4 }
-(1 + 3).toString()""")
+file_in = open("../Mirage/Tokenizer/Tokenizer.mirage", "r")
+tokenizer_text = file_in.read()
+file_in.close()
+
+tokens = tokenize(tokenizer_text)
 
 print("Number of tokens: " + str(len(tokens)))
 max_token_length = max(map(lambda token: len(token.value), tokens))

@@ -84,7 +84,7 @@ def name_to_name(char_and_state):
 
 def symbol_to_symbol(char_and_state):
     (char, state) = char_and_state
-    return char in _valid_symbol_chars
+    return char in _valid_symbol_chars and not symbol_to_comment(char_and_state)
 
 def add_char_action(previous_token_state, char_and_tokenizer_state):
     (char, tokenizer_state) = char_and_tokenizer_state
@@ -177,7 +177,12 @@ def unpack_tokens(tokenizer_state, previous_token_state):
             else:
                 tokens = [Token.apply(TokenType.NAME, tokenizer_state)]
         elif previous_token_state == TokenState.STRING:
-            tokens = [Token.apply(TokenType.STRING, tokenizer_state)]
+            string_token = Token(
+                TokenType.STRING,
+                tokenizer_state.token_text + "\"",
+                tokenizer_state.line_num,
+                tokenizer_state.token_start_column)
+            tokens = [string_token]
         elif previous_token_state == TokenState.SYMBOL:
             tokens = parse_symbols(tokenizer_state)
 
@@ -254,7 +259,6 @@ _fsm.add_transition(TokenState.SYMBOL, TokenState.WHITESPACE, to_whitespace)
 _fsm.add_transition(TokenState.FLOAT, TokenState.SYMBOL, to_symbol)
 _fsm.add_transition(TokenState.INT, TokenState.SYMBOL, int_to_symbol)
 _fsm.add_transition(TokenState.NAME, TokenState.SYMBOL, to_symbol)
-_fsm.add_transition(TokenState.STRING, TokenState.SYMBOL, to_symbol)
 
 _fsm.add_transition(TokenState.SYMBOL, TokenState.NAME, to_name)
 _fsm.add_transition(TokenState.SYMBOL, TokenState.INT, to_int)

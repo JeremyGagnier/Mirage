@@ -71,7 +71,7 @@ class TokenType:
         "INT": [],
         "STRING": [],
         "NAME": [],
-        "BIN_OP": ["+", "*", "^", "and", "or", "mod"],
+        "BIN_OP": ["+", "*", "^", ">", "<", "<=", ">=", "!=", "and", "or", "mod"],
         "UNI_OP": ["not"]}
 
     SYMBOL_TO_TOKEN_TYPES = {}

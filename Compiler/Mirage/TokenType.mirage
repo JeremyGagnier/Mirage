@@ -29,7 +29,7 @@ Test            = Seq("test")
 Colon           = Seq(":")
 Slash           = Seq("/")
 Dash            = Seq("-")
-BinOp           = Seq("+", "*", "^", "and", "or", "mod")
+BinOp           = Seq("+", "*", "^", ">", "<", "<=", ">=", "!=", "and", "or", "mod")
 UniOp           = Seq("not")
 Float
 Int
