@@ -1,0 +1,1 @@
+class AST(Grammar rule, Seq[AST] children)

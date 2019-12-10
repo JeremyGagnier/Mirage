@@ -1,32 +1,114 @@
 object SyntaxParser
 
-L1Table BuildL1Table()
-{
-    Seq[GrammarSymbol-Not[$Maybe, $Base]]-Distinct transitionalSymbols = GrammarSymbol.symbols.filter((GrammarSymbol symbol)
+Seq[GrammarSymbol-Not[Maybe, Base]]-Distinct TransitionalSymbols = GrammarSymbol.symbols
+    .filter((GrammarSymbol symbol)
     {
-        symbol.type != GrammarSymbol.Maybe and symbol.type != GrammarSymbol.Base
+        switch (symbol)
+        case (GrammarSymbol.Maybe _)
+        case (GrammarSymbol.Base _)
+        {
+            false
+        }
+        case
+        {
+            true
+        }
     })
 
-    transitionalSymbols.map((GrammarSymbol-Not[Maybe, Base] transitionalSymbol)
+
+Seq[GrammarSymbol.Base] getBaseSymbolsFromRuleSymbols(
+    GrammarSymbol-Not[Maybe, Base] transitionalSymbol,
+    Seq[GrammarSymbol.Base] lookahead,
+    Seq[GrammarSymbol-Not[Maybe, Base]] stack,
+    Seq[GrammarSymbol] toSymbols)
+{
+    switch (toSymbols.headOption)
+    case (Some[GrammarSymbol.Maybe] symbol)
     {
-        GrammarSymbol.Base.symbols.map((GrammarSymbol-Is[$Base] tokenType)
+        Seq[GrammarSymbol] possibleSymbols = if (symbol.inner.type == GrammarSymbol.Base)
         {
-            Grammar.values.flatMap(((GrammarSymbol fromSymbol, Seq[GrammarSymbol] toSymbols))
+            Seq(symbol.inner)
+        }
+        else
+        {
+            getPossibleBaseSymbols(symbol.inner, lookahead, stack + transitionalSymbol)
+        }
+        possibleSymbols + getBaseSymbolsFromRuleSymbols(transitionalSymbol, lookahead, stack, toSymbols.tail)
+    }
+    case (Some[GrammarSymbol.Base] symbol)
+    {
+        Seq(symbol)
+    }
+    case (Some[GrammarSymbol] symbol)
+    {
+        getPossibleBaseSymbols(symbol, lookahead, stack + transitionalSymbol)
+    }
+    case
+    {
+        Nil
+    }
+}
+
+Seq[GrammarSymbol.Base]-Distinct getPossibleBaseSymbols(
+    GrammarSymbol-Not[Maybe, Base] transitionalSymbol,
+    Seq[GrammarSymbol.Base] lookahead,
+    Seq[GrammarSymbol-Not[Maybe, Base]] stack = Seq())
+{
+    if (stack.contains(transitionalSymbol))
+    {
+        throw Exception("Failed to build rule table from grammar. Transitional symbol {0} loops to itself."
+            .format(Seq(transitionalSymbol.toString())))
+    }
+    Grammar.symbols
+        .filter((Grammar rule)
+        {
+            (GrammarSymbol fromSymbol, Seq[GrammarSymbol] _) = rule.value
+            fromSymbol == transitionalSymbol
+        })
+        .flatMap((Grammar rule)
+        {
+            (GrammarSymbol _, Seq[GrammarSymbol] toSymbols) = rule.value
+            getBaseSymbolsFromRuleSymbols(transitionalSymbol, lookahead, stack, toSymbols)
+        })
+        .distinct
+}
+
+// This is an LL(n) algorithm. It generates a recursive lookahead table from the Grammar enum
+RuleTable buildRuleTable()
+{
+    Seq[GrammarSymbol.Base] lookahead = Seq()
+    GrammarSymbol.Base.symbols.flatMapToDict((GrammarSymbol.Base tokenType)
+    {
+        Dict[GrammarSymbol-Not[Maybe, Base], Grammar|RuleTable] symbolToRule = TransitionalSymbols
+            .flatMapToDict((GrammarSymbol-Not[Maybe, Base] transitionalSymbol)
             {
-                if (fromSymbol == transitionalSymbol)
-                {
-                    Some(toSymbols)
-                }
-                else
+                Seq[Grammar] validTransitions = getPossibleBaseSymbols(transitionalSymbol, lookahead)
+                if (validTransitions.isEmpty())
                 {
                     None
                 }
+                else if (validTransitions.length == 1)
+                {
+                    Some((transitionalSymbol, validTransitions.head))
+                }
+                else
+                {
+                    // TODO: Start recursively calculating tables
+                }
             })
-        })
+
+        if (symbolToRule.isEmpty())
+        {
+            None
+        }
+        else
+        {
+            Some((tokenType, symbolToRule))
+        }
     })
 }
 
-AST BuildAbstractSyntaxTree(Seq[Token] tokens)
+public AST buildAbstractSyntaxTree(Seq[Token] tokens)
 {
     
 }

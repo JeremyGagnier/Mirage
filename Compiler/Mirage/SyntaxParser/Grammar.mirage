@@ -1,18 +1,18 @@
 enum Grammar[(GrammarSymbol, Seq[GrammarSymbol])]
-Imports = (File, Seq(Maybe.ImportDeclarations, TestOrEnumOrObject))
+Imports =           (File,                  Seq(Maybe.ImportDeclarations, TestOrEnumOrObject))
 
 // Differentiates into the different kinds of files
-TestFile = (TestOrEnumOrObject, Seq(Tests))
-EnumFile = (TestOrEnumOrObject, Seq(Base.Enum, Base.Name, EnumValues))
-ObjectFile = (TestOrEnumOrObject, Seq(Maybe.ObjectDefinition, Maybe.ClassDefinition))
+TestFile =          (TestOrEnumOrObject,    Seq(Tests))
+EnumFile =          (TestOrEnumOrObject,    Seq(Base.Enum, Base.Name, EnumValues))
+ObjectFile =        (TestOrEnumOrObject,    Seq(Maybe.ObjectDefinition, Maybe.ClassDefinition))
 
 // Test file rules
-Tests = (Tests, Seq(Base.Test, Base.String, Base.Newline, Maybe.Code, Maybe.Tests))
+Tests =             (Tests,                 Seq(Base.Test, Base.String, Base.Newline, Maybe.Code, Maybe.Tests))
 
 // Enum file rules
-EnumValues = (EnumValues, Seq(Maybe.EnumFixedValue, Base.Name, Maybe.EnumTypeOrValue, Maybe.EnumValues))
-EnumFixedValue = (EnumFixedValue, Seq(Base.Int, Base.Colon))
-EnumType = (EnumTypeOrValue, Seq(Base.OpenTemplate, Base.Name, Base.CloseTemplate))
-EnumValue = (EnumTypeOrValue, Seq(Base.Equals, Call))
+EnumValues =        (EnumValues,            Seq(Maybe.EnumFixedValue, Base.Name, Maybe.EnumTypeOrValue, Maybe.EnumValues))
+EnumFixedValue =    (EnumFixedValue,        Seq(Base.Int, Base.Colon))
+EnumType =          (EnumTypeOrValue,       Seq(Base.OpenTemplate, Base.Name, Base.CloseTemplate))
+EnumValue =         (EnumTypeOrValue,       Seq(Base.Equals, Call))
 
-ObjectDefinition = (ObjectDefinition, Seq(Base.Object, Base.Name, ))
+ObjectDefinition =  (ObjectDefinition,      Seq(Base.Object, Base.Name, ))

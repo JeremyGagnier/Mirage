@@ -1,0 +1,4 @@
+// The table contains info based on the current token being looked at from the file and what grammar symbol is on top
+// of the stack. The info is either the rule to apply or another table. If it's another table then this means we need
+// to look ahead another symbol in the file to try and determine the rule.
+class RuleTable(Dict[GrammarSymbol.Base, Dict[GrammarSymbol-Not[Maybe, Base], Grammar|RuleTable]] table)
