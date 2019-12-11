@@ -1,7 +1,6 @@
 # The Mirage Programming Language
 
-**NOTE:** Mirage is currently in the design stage. Many ideas and features are not solidified or implemented at the moment.
-{: .alert .alert-warning}
+>**NOTE:** Mirage is currently in the design stage. Many ideas and features are not solidified or implemented at the moment.
 
 The Mirage programming language is designed around the following principles:
 
