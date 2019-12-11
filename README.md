@@ -10,15 +10,16 @@ The Mirage programming language is designed around the following principles:
 * Pure functional needs to be supported with optimizations and syntax to be a reasonable alternative to imperative.
 * Compiling for development should be extremely fast. Code should execute extremely fast in production.
 * Configuration should be code.
+* 
 
 
 ### Contextual Types
 
-The core idea that allows Mirage to uphold many of the principles above is contextual type annotations. Lines of code can infer things that may be relevant to subsequent lines of code. As humans we keep track of this to some degree and this (among many other things) allows us to understand code better than modern compilers. When Mirage encounters conditionals that affect execution flow (like the condition in an if statement) it modifies types in those contexts.
+The core idea that allows Mirage to uphold many of the principles above is contextual type annotations. Lines of code can infer things that may be relevant to subsequent lines of code. As humans we keep track of this to some degree and this (among many other things) allows us to understand code better than compilers. When Mirage encounters conditionals that affect execution flow (like the condition in an if statement) it modifies types in those contexts.
 
-For example: getting a value from a dictionary without checking if the key exists in the dictionary is unsafe. In some languages like Scala you can get an optional instead and deal with the None case. In Mirage you can check if the value exists, and then inside the if statement the type of the dictionary is annotated to mark that the symbol you checked for is contained in the dictionary. `Dict[Int, Int]` becomes `Dict[Int, Int]-Contains[$x]` for example, where `x` is what you checked for. This annotated type allows you to safely and directly get the value with x. If a line modifies `x` then the contextual type is invalidated for subsequent lines.
+For example: getting a value from a dictionary without checking if the key exists in the dictionary is unsafe. Many languages deal with this differently if the value is not found; some throw an exception, some return null or undefined. In Mirage you can do what Scala does where you safely get an optional value, however if you don't want to deal with an optional value Scala allows you to unsafely get the value. Mirage has a way to directly get the value too, but safely. How it works is you write an if statement to check if the value exists, and then inside the if statement the type of the dictionary is annotated to mark that the symbol you checked for is contained in the dictionary. `Dict[Int, Int]` becomes `Dict[Int, Int]-Contains[$x]` for example, where `x` is what you checked for. This annotated type allows you to safely and directly get the value with x via a method defined by the `Contains` annotation. If a line modifies `x` then the contextual type is invalidated for subsequent lines.
 
-Contextual type annotation can be user defined so that any boolean function can modify types. Type annotations allow defining additional methods for convenience, which is how the safe dictionary access is implemented. Even more importantly type annotations allow you to define substitutions. Substitutions can be used to find duplicate checks and dead code, perform micro optimizations, and more.
+Contextual type annotation can be user defined so that any boolean function can modify types. Type annotations allow defining additional methods for convenience, which is how the safe dictionary access is implemented. Even more importantly type annotations allow you to define substitutions. Substitutions can be used to find redundancies and dead code, perform micro optimizations, and more.
 
 
 ### Configuration Is Code

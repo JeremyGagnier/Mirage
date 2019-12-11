@@ -17,25 +17,31 @@ _name_starters = _alphabet + "#$"
 _number_starters = _numbers
 _symbol_starters = _valid_symbol_chars
 
+
 def to_int(char_and_state):
     (char, state) = char_and_state
     return char in _number_starters
+
 
 def to_name(char_and_state):
     (char, state) = char_and_state
     return char in _name_starters
 
+
 def to_string(char_and_state):
     (char, state) = char_and_state
     return char == "\""
+
 
 def to_whitespace(char_and_state):
     (char, state) = char_and_state
     return char == "\n" or char == " "
 
+
 def comment_to_whitespace(char_and_state):
     (char, state) = char_and_state
     return char == "\n"
+
 
 def string_to_whitespace(char_and_state):
     (char, state) = char_and_state
@@ -46,45 +52,56 @@ def string_to_whitespace(char_and_state):
     else:
         return False
 
+
 def int_to_int_dot(char_and_state):
     (char, state) = char_and_state
     return char == "."
+
 
 def int_dot_to_float(char_and_state):
     (char, state) = char_and_state
     return char in _numbers
 
+
 def int_dot_to_name(char_and_state):
     (char, state) = char_and_state
     return char in _name_starters
+
 
 def symbol_to_comment(char_and_state):
     (char, state) = char_and_state
     return char == "/" and state.token_text == "/"
 
+
 def to_symbol(char_and_state):
     (char, state) = char_and_state
     return char in _symbol_starters
+
 
 def int_to_symbol(char_and_state):
     (char, state) = char_and_state
     return char != "." and char in _symbol_starters
 
+
 def string_to_escaped(char_and_state):
     (char, state) = char_and_state
     return char == "\\"
+
 
 def number_to_number(char_and_state):
     (char, state) = char_and_state
     return char in _valid_number_chars
 
+
 def name_to_name(char_and_state):
     (char, state) = char_and_state
     return char in _valid_name_chars
 
+
 def symbol_to_symbol(char_and_state):
     (char, state) = char_and_state
     return char in _valid_symbol_chars and not symbol_to_comment(char_and_state)
+
 
 def add_char_action(previous_token_state, char_and_tokenizer_state):
     (char, tokenizer_state) = char_and_tokenizer_state
@@ -100,6 +117,7 @@ def add_char_action(previous_token_state, char_and_tokenizer_state):
 
     return (tokens, new_state)
 
+
 def int_dot_error_action(previous_token_state, char_and_tokenizer_state):
     (char, tokenizer_state) = char_and_tokenizer_state
     raise TokenizerException(
@@ -107,6 +125,7 @@ def int_dot_error_action(previous_token_state, char_and_tokenizer_state):
         tokenizer_state.line_num,
         tokenizer_state.column_num,
         char)
+
 
 def number_error_action(previous_token_state, char_and_tokenizer_state):
     (char, tokenizer_state) = char_and_tokenizer_state
@@ -116,6 +135,7 @@ def number_error_action(previous_token_state, char_and_tokenizer_state):
         tokenizer_state.column_num,
         char)
 
+
 def name_error_action(previous_token_state, char_and_tokenizer_state):
     (char, tokenizer_state) = char_and_tokenizer_state
     raise TokenizerException(
@@ -123,6 +143,7 @@ def name_error_action(previous_token_state, char_and_tokenizer_state):
         tokenizer_state.line_num,
         tokenizer_state.column_num,
         char)
+
 
 def symbol_error_action(previous_token_state, char_and_tokenizer_state):
     (char, tokenizer_state) = char_and_tokenizer_state
@@ -132,26 +153,30 @@ def symbol_error_action(previous_token_state, char_and_tokenizer_state):
         tokenizer_state.column_num,
         char)
 
+
 def comment_action(previous_token_state, char_and_tokenizer_state):
     (char, tokenizer_state) = char_and_tokenizer_state
     return ([], tokenizer_state)
 
+
 def parse_symbols(tokenizer_state):
+
     def reduce_splits(char_count_and_tokens, symbol_text):
         (char_count, tokens) = char_count_and_tokens
         new_token = Token(
-            TokenType.SYMBOL_TO_TOKEN_TYPES[symbol_text],
+            TokenType.get(symbol_text),
             symbol_text,
             tokenizer_state.line_num,
             tokenizer_state.token_start_column + char_count)
         return (char_count + len(symbol_text), tokens + [new_token])
+
 
     splits = []
     text = tokenizer_state.token_text
     while (text != ""):
         for i in range(0, len(text)):
             from_end = len(text) - i
-            if text[:from_end] in TokenType.SYMBOL_TO_TOKEN_TYPES:
+            if TokenType.contains(text[:from_end]):
                 splits.append(text[:from_end])
                 text = text[from_end:]
                 break
@@ -164,6 +189,7 @@ def parse_symbols(tokenizer_state):
 
     return reduce(reduce_splits, splits, (0, []))[1]
 
+
 def unpack_tokens(tokenizer_state, previous_token_state):
     if len(tokenizer_state.token_text) > 0:
         tokens = []
@@ -172,8 +198,8 @@ def unpack_tokens(tokenizer_state, previous_token_state):
         elif previous_token_state == TokenState.INT:
             tokens = [Token.apply(TokenType.INT, tokenizer_state)]
         elif previous_token_state == TokenState.NAME:
-            if tokenizer_state.token_text in TokenType.SYMBOL_TO_TOKEN_TYPES:
-                tokens = [Token.apply(TokenType.SYMBOL_TO_TOKEN_TYPES[tokenizer_state.token_text], tokenizer_state)]
+            if TokenType.contains(tokenizer_state.token_text):
+                tokens = [Token.apply(TokenType.get(tokenizer_state.token_text), tokenizer_state)]
             else:
                 tokens = [Token.apply(TokenType.NAME, tokenizer_state)]
         elif previous_token_state == TokenState.STRING:
@@ -197,6 +223,7 @@ def unpack_tokens(tokenizer_state, previous_token_state):
     else:
         return ([], tokenizer_state)
 
+
 def symbol_action(previous_token_state, char_and_tokenizer_state):
     (char, tokenizer_state) = char_and_tokenizer_state
     tokens = []
@@ -211,6 +238,7 @@ def symbol_action(previous_token_state, char_and_tokenizer_state):
         unpacked_state.column_num + 1)
 
     return (tokens, new_state)
+
 
 def whitespace_action(previous_token_state, char_and_tokenizer_state):
     (char, tokenizer_state) = char_and_tokenizer_state
@@ -228,6 +256,7 @@ def whitespace_action(previous_token_state, char_and_tokenizer_state):
             unpacked_state.column_num + 1)
 
     return (tokens, new_state)
+
 
 _fsm = FSM(TokenState.WHITESPACE)
 _fsm.add_state(TokenState.COMMENT, comment_action)
@@ -283,12 +312,14 @@ _fsm.add_transition(TokenState.INT_DOT, TokenState.FLOAT, int_dot_to_float)
 _fsm.add_transition(TokenState.INT_DOT, TokenState.NAME, int_dot_to_name)
 _fsm.add_else_transition(TokenState.INT_DOT, TokenState.INT_DOT_ERROR)
 
+
 def _step(tokens_and_state, char):
     (tokens, state) = tokens_and_state
     prev_state = _fsm.state
     (new_tokens, new_state) = _fsm.step((char, state))
     #print(char + " + " + prev_state + " -> " + _fsm.state + " + " + str(map(lambda token: token.value, new_tokens)))
     return (tokens + new_tokens, new_state)
+
 
 def tokenize(plaintext):
     (tokens, state) = reduce(_step, (plaintext + "\n"), ([], TokenizerState("", 1, 1, 1)))

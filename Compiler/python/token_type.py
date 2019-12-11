@@ -1,83 +1,62 @@
+from enum import Enum
+
+_TOKEN_NAME_TO_SYMBOLS = {
+    "OPEN_ARGUMENT": ["("],
+    "CLOSE_ARGUMENT": [")"],
+    "OPEN_CODE": ["{"],
+    "CLOSE_CODE": ["}"],
+    "OPEN_TEMPLATE": ["["],
+    "CLOSE_TEMPLATE": ["]"],
+    "NEWLINE": ["\n"],
+    "COMMA": [","],
+    "DOT": ["."],
+    "CLASS": ["class"],
+    "OBJECT": ["object"],
+    "ENUM": ["enum"],
+    "IF": ["if"],
+    "ELSE": ["else"],
+    "EQUALS": ["=", "+=", "-=", "*=", "/="],
+    "PUBLIC": ["public"],
+    "PRIVATE": ["private"],
+    "PROTECTED": ["protected"],
+    "VAR": ["var"],
+    "METHOD_MOD": ["override", "abstract"],
+    "PACKAGE": ["package"],
+    "IMPORT": ["import"],
+    "THROW": ["throw"],
+    "IN": ["in"],
+    "TEST": ["test"],
+    "COLON": [":"],
+    "SLASH": ["/"],
+    "DASH": ["-"],
+    "FLOAT": [],
+    "INT": [],
+    "STRING": [],
+    "NAME": [],
+    "BIN_OP": ["+", "*", "^", ">", "<", "<=", ">=", "!=", "and", "or", "mod"],
+    "UNI_OP": ["not"]}
+
+_SYMBOL_TO_TOKEN_NAMES = {}
+
+
 class TokenType:
-    OPEN_ARGUMENT = "OPEN_ARGUMENT"
-    CLOSE_ARGUMENT = "CLOSE_ARGUMENT"
-    OPEN_CODE = "OPEN_CODE"
-    CLOSE_CODE = "CLOSE_CODE"
-    OPEN_TEMPLATE = "OPEN_TEMPLATE"
-    CLOSE_TEMPLATE = "CLOSE_TEMPLATE"
-    NEWLINE = "NEWLINE"
-    COMMA = "COMMA"
-    DOT = "DOT"
-    CLASS = "CLASS"
-    OBJECT = "OBJECT"
-    ENUM = "ENUM"
-    IF = "IF"
-    ELSE = "ELSE"
-    EQUALS = "EQUALS"
-    PUBLIC = "PUBLIC"
-    PRIVATE = "PRIVATE"
-    PROTECTED = "PROTECTED"
-    VAR = "VAR"
-    METHOD_MOD = "METHOD_MOD"
-    LOOP = "LOOP"
-    PACKAGE = "PACKAGE"
-    IMPORT = "IMPORT"
-    THROW = "THROW"
-    BREAK = "BREAK"
-    IN = "IN"
-    TEST = "TEST"
-    COLON = "COLON"
-    SLASH = "SLASH"
-    DASH = "DASH"
-    FLOAT = "FLOAT"
-    INT = "INT"
-    STRING = "STRING"
-    NAME = "NAME"
-    BIN_OP = "BIN_OP"
-    UNI_OP = "UNI_OP"
+    @staticmethod
+    def contains(symbol):
+        return symbol in _SYMBOL_TO_TOKEN_NAMES
 
-    TOKEN_TYPE_TO_SYMBOLS = {
-        "OPEN_ARGUMENT": ["("],
-        "CLOSE_ARGUMENT": [")"],
-        "OPEN_CODE": ["{"],
-        "CLOSE_CODE": ["}"],
-        "OPEN_TEMPLATE": ["["],
-        "CLOSE_TEMPLATE": ["]"],
-        "NEWLINE": ["\n"],
-        "COMMA": [","],
-        "DOT": ["."],
-        "CLASS": ["class"],
-        "OBJECT": ["object"],
-        "ENUM": ["enum"],
-        "IF": ["if"],
-        "ELSE": ["else"],
-        "EQUALS": ["=", "+=", "-=", "*=", "/="],
-        "PUBLIC": ["public"],
-        "PRIVATE": ["private"],
-        "PROTECTED": ["protected"],
-        "VAR": ["var"],
-        "METHOD_MOD": ["override", "abstract"],
-        "LOOP": ["loop"],
-        "PACKAGE": ["package"],
-        "IMPORT": ["import"],
-        "THROW": ["throw"],
-        "BREAK": ["break"],
-        "IN": ["in"],
-        "TEST": ["test"],
-        "COLON": [":"],
-        "SLASH": ["/"],
-        "DASH": ["-"],
-        "FLOAT": [],
-        "INT": [],
-        "STRING": [],
-        "NAME": [],
-        "BIN_OP": ["+", "*", "^", ">", "<", "<=", ">=", "!=", "and", "or", "mod"],
-        "UNI_OP": ["not"]}
 
-    SYMBOL_TO_TOKEN_TYPES = {}
-    for (token_type, tokens) in TOKEN_TYPE_TO_SYMBOLS.items():
-        for token in tokens:
-            SYMBOL_TO_TOKEN_TYPES[token] = token_type
+    @staticmethod
+    def get(symbol):
+        return _SYMBOL_TO_TOKEN_NAMES[symbol]
 
-    def get(token_string):
-        TokenType.SYMBOL_TO_TOKEN_TYPES[token_string]
+
+# Fill the TokenType class
+for (token_name, symbols) in _TOKEN_NAME_TO_SYMBOLS.items():
+    Enum.value(TokenType, token_name, symbols)
+
+# Build the inverted map. There should not be duplicates in the symbols because the token parser is not powerful enough
+# to determine what token type is correct in that case. Duplicates should be consolidated to a new token type that gets
+# resolved by the grammar.
+for (token_name, symbols) in _TOKEN_NAME_TO_SYMBOLS.items():
+    for symbol in symbols:
+        _SYMBOL_TO_TOKEN_NAMES[symbol] = vars(TokenType)[token_name]

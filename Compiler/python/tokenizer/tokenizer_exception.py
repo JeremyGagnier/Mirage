@@ -6,4 +6,4 @@ class TokenizerException(Exception):
         self.offender = offender
 
     def __str__(self):
-        return self.exception_type.format(self.line_num, self.column_num, self.offender)
+        return self.exception_type.value.format(self.line_num, self.column_num, self.offender)
