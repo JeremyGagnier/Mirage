@@ -1,5 +1,6 @@
 enum GrammarSymbol
 Base[TokenType]
+Maybe[Base[TokenType]]
 Maybe[GrammarSymbol]
 File
 ImportDeclarations

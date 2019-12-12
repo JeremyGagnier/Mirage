@@ -1,7 +1,7 @@
 from enum import Enum
 
 class TokenState:
-    pass
+    values = []
 
 Enum.value(TokenState, "COMMENT")
 Enum.value(TokenState, "ESCAPED")

@@ -40,6 +40,9 @@ _SYMBOL_TO_TOKEN_NAMES = {}
 
 
 class TokenType:
+    values = []
+
+
     @staticmethod
     def contains(symbol):
         return symbol in _SYMBOL_TO_TOKEN_NAMES
