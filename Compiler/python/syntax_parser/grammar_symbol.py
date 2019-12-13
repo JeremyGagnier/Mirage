@@ -3,6 +3,7 @@ from token_type import TokenType
 
 _SYMBOL_NAMES = [
     "FILE",
+    "TEST_OR_ENUM_OR_OBJECT",
     "IMPORT_DECLARATIONS",
     "TESTS",
     "ENUM_VALUES"]

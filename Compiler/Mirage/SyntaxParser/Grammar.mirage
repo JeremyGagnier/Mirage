@@ -1,4 +1,5 @@
 enum Grammar[(GrammarSymbol, Seq[GrammarSymbol])]
+MaybeToNothing
 Imports =           (File,                  Seq(Maybe.ImportDeclarations, TestOrEnumOrObject))
 
 // Differentiates into the different kinds of files
