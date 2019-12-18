@@ -15,74 +15,93 @@ Seq[GrammarSymbol-Not[Maybe, Base]]-Distinct TransitionalSymbols = GrammarSymbol
         }
     })
 
-
-Seq[GrammarSymbol.Base] getBaseSymbolsFromRuleSymbols(
+Seq[Grammar] getPossibleRules(
     GrammarSymbol-Not[Maybe, Base] transitionalSymbol,
     Seq[GrammarSymbol.Base] lookahead,
-    Seq[GrammarSymbol-Not[Maybe, Base]] stack,
-    Seq[GrammarSymbol] toSymbols)
+    Seq[Grammar] seen = Seq())
 {
-    switch (toSymbols.headOption)
-    case (Some[GrammarSymbol.Maybe] symbol)
-    {
-        Seq[GrammarSymbol] possibleSymbols = if (symbol.inner.type == GrammarSymbol.Base)
-        {
-            Seq(symbol.inner)
-        }
-        else
-        {
-            getPossibleBaseSymbols(symbol.inner, lookahead, stack + transitionalSymbol)
-        }
-        possibleSymbols + getBaseSymbolsFromRuleSymbols(transitionalSymbol, lookahead, stack, toSymbols.tail)
-    }
-    case (Some[GrammarSymbol.Base] symbol)
-    {
-        Seq(symbol)
-    }
-    case (Some[GrammarSymbol] symbol)
-    {
-        getPossibleBaseSymbols(symbol, lookahead, stack + transitionalSymbol)
-    }
-    case
-    {
-        Nil
-    }
-}
-
-Seq[GrammarSymbol.Base]-Distinct getPossibleBaseSymbols(
-    GrammarSymbol-Not[Maybe, Base] transitionalSymbol,
-    Seq[GrammarSymbol.Base] lookahead,
-    Seq[GrammarSymbol-Not[Maybe, Base]] stack = Seq())
-{
-    if (stack.contains(transitionalSymbol))
+    if (seen.contains(transitionalSymbol))
     {
         throw Exception("Failed to build rule table from grammar. Transitional symbol {0} loops to itself."
             .format(Seq(transitionalSymbol.toString())))
     }
+
     Grammar.symbols
         .filter((Grammar rule)
         {
-            (GrammarSymbol fromSymbol, Seq[GrammarSymbol] _) = rule.value
-            fromSymbol == transitionalSymbol
+            (GrammarSymbol fromSymbol, Seq[GrammarSymbol] toSymbols) = rule.value
+            fromSymbol == transitionalSymbol and ruleMatchesLookahead(toSymbols, Seq(lookahead), seen + rule)
         })
-        .flatMap((Grammar rule)
+}
+
+// Recursively computes if the toSymbols satisfy the lookahead.
+Bool|Seq[GrammarSymbol.Base] ruleMatchesLookahead(
+    Seq[GrammarSymbol] toSymbols,
+    Seq[GrammarSymbol.Base] lookahead,
+    Seq[Grammar] seen)
+{
+    // This if else if is exhaustive. If something underlying changes to make it not exhaustive then this will fail to
+    // compile because not all paths return a value. This reveals that there may be a new bug.
+    if (lookahead.isEmpty())
+    {
+        // If we have exhausted lookahead without returning false then the rule matches.
+        true
+    }
+    else if (toSymbols.isEmpty())
+    {
+        lookahead
+    }
+    else if (lookahead.head == toSymbols.head)
+    {
+        ruleMatchesLookahead(toSymbols.tail, lookahead.tail, seen)
+    }
+    else if (TransitionalSymbols.contains(toSymbols.head))
+    {
+        // TODO: Verify that this getPossibleRules -> ruleMatchesLookahead recursive logic is good.
+        Seq[Grammar] possibleRulesFromOneSymbol = getPossibleRules(toSymbols.head, Seq(lookahead.head), seen)
+        possibleRulesFromOneSymbol.exists((Grammar rule)
         {
-            (GrammarSymbol _, Seq[GrammarSymbol] toSymbols) = rule.value
-            getBaseSymbolsFromRuleSymbols(transitionalSymbol, lookahead, stack, toSymbols)
+            (GrammarSymbol _, Seq[GrammarSymbol] toSymbols2) = rule.value
+            switch (ruleMatchesLookahead(toSymbols2.tail, lookahead.tail, seen + rule))
+            case (Seq[GrammarSymbol.Base] restOfLookahead)
+            {
+                ruleMatchesLookahead(toSymbols.tail, restOfLookahead, seen)
+            }
+            case (Bool value)
+            {
+                value
+            }
         })
-        .distinct
+    }
+    else if (GrammarSymbol.Maybe.contains(toSymbols.head))
+    {
+        switch(ruleMatchesLookahead(toSymbols.head.inner + toSymbols.tail, lookahead, seen))
+        case (Seq[GrammarSymbol.Base] _)
+        case (false)
+        {
+            ruleMatchesLookahead(toSymbols.tail, lookahead, seen)
+        }
+        case (true)
+        {
+            true
+        }
+    }
+    else if (GrammarSymbol.Base.contains(toSymbols.head))
+    {
+        false
+    }
 }
 
 // This is an LL(n) algorithm. It generates a recursive lookahead table from the Grammar enum
-RuleTable buildRuleTable()
+RuleTable buildRuleTable(Seq[GrammarSymbol.Base] lookahead = Seq())
 {
-    Seq[GrammarSymbol.Base] lookahead = Seq()
     GrammarSymbol.Base.symbols.flatMapToDict((GrammarSymbol.Base tokenType)
     {
+        Seq[GrammarSymbol.Base] newLookahead = lookahead + tokenType
         Dict[GrammarSymbol-Not[Maybe, Base], Grammar|RuleTable] symbolToRule = TransitionalSymbols
             .flatMapToDict((GrammarSymbol-Not[Maybe, Base] transitionalSymbol)
             {
-                Seq[Grammar] validTransitions = getPossibleBaseSymbols(transitionalSymbol, lookahead)
+                Seq[Grammar] validTransitions = getPossibleRules(transitionalSymbol, newLookahead)
                 if (validTransitions.isEmpty())
                 {
                     None
@@ -93,7 +112,8 @@ RuleTable buildRuleTable()
                 }
                 else
                 {
-                    // TODO: Start recursively calculating tables
+                    // TODO: Narrow possible rules
+                    Some((transitionalSymbol, buildRuleTable(newLookahead)))
                 }
             })
 
@@ -107,6 +127,8 @@ RuleTable buildRuleTable()
         }
     })
 }
+
+RuleTable fullRuleTable = buildRuleTable()
 
 public AST buildAbstractSyntaxTree(Seq[Token] tokens)
 {
