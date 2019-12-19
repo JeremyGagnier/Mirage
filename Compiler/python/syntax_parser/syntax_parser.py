@@ -59,3 +59,4 @@ def _build_ast_helper(tokens, stack_symbol, token_index):
 
 def build_abstract_syntax_tree(tokens):
     (tokens_length, ast) = _build_ast_helper(tokens, GrammarSymbol.FILE, 0)
+    return ast

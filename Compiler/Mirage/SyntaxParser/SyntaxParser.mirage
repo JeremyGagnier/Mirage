@@ -130,7 +130,101 @@ RuleTable buildRuleTable(Seq[GrammarSymbol.Base] lookahead = Seq())
 
 RuleTable fullRuleTable = buildRuleTable()
 
+Option[Grammar] findRule(GrammarSymbol stackSymbol, Seq[Token] tokens, Int tokenIndex, RuleTable currentTable)
+{
+    if (tokenIndex > tokens.length)
+    {
+        throw Exception(...)
+    }
+    Token currentToken = tokens.get(tokenIndex)
+
+    GrammarSymbol-Not[Maybe] currentSymbol = if (GrammarSymbol.Maybe.contains(stackSymbol))
+    {
+        stackSymbol.inner
+    }
+    else
+    {
+        stackSymbol
+    }
+
+    if (not currentTable.table.contains(currentToken) or
+        not currentTable.table.get(currentToken).contains(currentSymbol))
+    {
+        None
+    }
+    else
+    {
+        Grammar|RuleTable tableOrRule = currentTable.get(currentToken).get(currentSymbol)
+        switch (tableOrRule)
+        case (RuleTable table)
+        {
+            findRule(currentSymbol, tokens, tokenIndex + 1, table)
+        }
+        case (Grammar rule)
+        {
+            Some(rule)
+        }
+    }
+}
+
+(Int, AST|Token) buildAstHelper(Seq[Token] tokens, GrammarSymbol stackSymbol, Int tokenIndex)
+{
+    if (GrammarSymbol.Base.contains(stackSymbol))
+    {
+        if (tokenIndex < tokens.length)
+        {
+            if (tokens.get(tokenIndex).type == stackSymbol.inner)
+            {
+                (tokenIndex + 1, tokens.get(tokenIndex))
+            }
+            else
+            {
+                throw Exception(...)
+            }
+        }
+        else
+        {
+            throw Exception(...)
+        }
+    }
+    else
+    {
+        Option[Grammar] ruleOpt = findRule(stackSymbol, tokens, tokenIndex, fullRuleTable)
+        Grammar rule = if (ruleOpt.isDefined)
+        {
+            ruleOpt.get()
+        }
+        else if (GrammarSymbol.Maybe.contains(stackSymbol))
+        {
+            Grammar.MaybeToNothing
+        }
+        else
+        {
+            throw Exception(...)
+        }
+        (GrammarSymbol _, Seq[GrammarSymbol] newSymbols) = rule.value
+
+        (Int newTokenIndex, Seq[AST|Token] astSeq) = newSymbols
+            .fold((tokenIndex, Seq()), ((Int lastTokenIndex, Seq[AST|Token] lastAstSeq), GrammarSymbol nextSymbol)
+            {
+                (nextTokenIndex, astNew) = buildAstHelper(tokens, nextSymbol, lastTokenIndex)
+                (nextTokenIndex, lastAstSeq + astNew)
+            })
+
+        (newTokenIndex, AST(rule, astSeq))
+    }
+}
+
 public AST buildAbstractSyntaxTree(Seq[Token] tokens)
 {
-    
+    (Int _, AST|Token maybeAst) buildAstHelper(tokens, GrammarSymbol.File, 0)
+    switch (maybeAst)
+    case (AST ast)
+    {
+        ast
+    }
+    case
+    {
+        throw Exception(...)
+    }
 }
