@@ -1,8 +1,10 @@
 from enum import Enum
 from syntax_parser.grammar_symbol import GrammarSymbol
 
+
 class SimpleGrammar:
     values = []
+
 
 Enum.value(SimpleGrammar, "MAYBE_TO_NOTHING")
 Enum.value(SimpleGrammar, "FILE", (GrammarSymbol.FILE, [GrammarSymbol.Maybe.IMPORT_DECLS, GrammarSymbol.TEST_OR_ENUM_OR_OBJECT]))

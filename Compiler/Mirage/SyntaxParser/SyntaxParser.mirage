@@ -65,7 +65,15 @@ Bool|Seq[GrammarSymbol.Base] ruleMatchesLookahead(
             switch (ruleMatchesLookahead(toSymbols2.tail, lookahead.tail, seen + rule))
             case (Seq[GrammarSymbol.Base] restOfLookahead)
             {
-                ruleMatchesLookahead(toSymbols.tail, restOfLookahead, seen)
+                switch(ruleMatchesLookahead(toSymbols.tail, restOfLookahead, seen))
+                case (Seq[GrammarSymbol.Base] restOfLookahead)
+                {
+                    false
+                }
+                case (Bool value)
+                {
+                    value
+                }
             }
             case (Bool value)
             {
