@@ -30,7 +30,7 @@ Seq[Grammar] getPossibleRules(
         .filter((Grammar rule)
         {
             (GrammarSymbol fromSymbol, Seq[GrammarSymbol] toSymbols) = rule.value
-            fromSymbol == transitionalSymbol and ruleMatchesLookahead(toSymbols, Seq(lookahead), seen + rule)
+            fromSymbol == transitionalSymbol and ruleMatchesLookahead(toSymbols, lookahead, seen + fromSymbol) == true
         })
 }
 
@@ -61,8 +61,8 @@ Bool|Seq[GrammarSymbol.Base] ruleMatchesLookahead(
         Seq[Grammar] possibleRulesFromOneSymbol = getPossibleRules(toSymbols.head, Seq(lookahead.head), seen)
         possibleRulesFromOneSymbol.exists((Grammar rule)
         {
-            (GrammarSymbol _, Seq[GrammarSymbol] toSymbols2) = rule.value
-            switch (ruleMatchesLookahead(toSymbols2.tail, lookahead.tail, seen + rule))
+            (GrammarSymbol fromSymbol, Seq[GrammarSymbol] toSymbols2) = rule.value
+            switch (ruleMatchesLookahead(toSymbols2.tail, lookahead.tail, seen + fromSymbol))
             case (Seq[GrammarSymbol.Base] restOfLookahead)
             {
                 switch(ruleMatchesLookahead(toSymbols.tail, restOfLookahead, seen))

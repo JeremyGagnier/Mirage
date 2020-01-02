@@ -8,6 +8,7 @@ _SYMBOL_NAMES = [
     "LINE",
     "TYPE",
     "INNER_TYPE",
+    "MORE_INNER_TYPE",
     "CALL",
     "MORE_CALL",
     "FETCH",
