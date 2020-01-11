@@ -9,7 +9,7 @@ TERMINAL_SYMBOLS = filter(
     GrammarSymbol.values)
 
 
-def _get_possible_rules(grammar, terminal_symbol, lookahead, seen=[]):
+def _get_possible_rules(grammar, terminal_symbol, lookahead, seen=[], requires_full_match=False):
     if terminal_symbol in seen:
         raise Exception(
             "Failed to build rule table from grammar. Terminal symbol " +
@@ -24,16 +24,19 @@ def _get_possible_rules(grammar, terminal_symbol, lookahead, seen=[]):
 
         from_symbol, to_symbols = rule.value
         if from_symbol == terminal_symbol:
-            #print("  Calling rule matches lookahead for rule " + str(rule))
+            print("  Calling rule matches lookahead for rule " + str(rule))
             matches_lookahead = _rule_matches_lookahead(grammar, to_symbols, lookahead, seen + [from_symbol])
-            if matches_lookahead == True:
+            if requires_full_match:
+                if matches_lookahead == True:
+                    possible_rules.append(rule)
+            elif matches_lookahead:
                 possible_rules.append(rule)
 
     return possible_rules
 
 
 def _rule_matches_lookahead(grammar, to_symbols, lookahead, seen):
-    #print("    Checking if " + str(map(lambda x: str(x), to_symbols)) + " matches " + str(map(lambda x: str(x), lookahead)))
+    print("    Checking if " + str(map(lambda x: str(x), to_symbols)) + " matches " + str(map(lambda x: str(x), lookahead)))
     if len(lookahead) == 0:
         return True
     elif len(to_symbols) == 0:
@@ -41,9 +44,9 @@ def _rule_matches_lookahead(grammar, to_symbols, lookahead, seen):
     elif lookahead[0] == to_symbols[0]:
         return _rule_matches_lookahead(grammar, to_symbols[1:], lookahead[1:], seen)
     elif to_symbols[0] not in GrammarSymbol.Base.values and to_symbols[0] not in GrammarSymbol.Maybe.values:
-        #print("  Getting possible rules from one symbol")
-        possible_rules_from_one_symbol = _get_possible_rules(grammar, to_symbols[0], [lookahead[0]], seen)
-        #print("  Possible rules from one symbol: " + str(map(lambda x: str(x), possible_rules_from_one_symbol)))
+        print("  Getting possible rules from one symbol")
+        possible_rules_from_one_symbol = _get_possible_rules(grammar, to_symbols[0], [lookahead[0]], seen, True)
+        print("  Possible rules from one symbol: " + str(map(lambda x: str(x), possible_rules_from_one_symbol)))
         for rule in possible_rules_from_one_symbol:
             from_symbol, to_symbols2 = rule.value
             matches_lookahead = _rule_matches_lookahead(grammar, to_symbols2[1:], lookahead[1:], seen + [from_symbol])
@@ -80,16 +83,16 @@ def _build_rule_table(grammar, terminal_symbol, lookahead):
     for token_type in GrammarSymbol.Base.values:
         new_lookahead = lookahead + [token_type]
 
-        #print("Getting possible rules for stack " + str(terminal_symbol) + ", and seen tokens " + str(map(lambda x: str(x), new_lookahead)))
+        print("Getting possible rules for stack " + str(terminal_symbol) + ", and seen tokens " + str(map(lambda x: str(x), new_lookahead)))
         valid_transitions = _get_possible_rules(grammar, terminal_symbol, new_lookahead)
         if len(valid_transitions) == 0:
-            #print("No valid transitions")
+            print("No valid transitions")
             pass
         elif len(valid_transitions) == 1:
-            #print("Exactly one valid transition")
+            print("Exactly one valid transition")
             rule_table_row[token_type] = valid_transitions[0]
         else:
-            #print("More than one valid transition. Recursing: " + str(map(lambda x: str(x), valid_transitions)))
+            print("More than one valid transition. Recursing: " + str(map(lambda x: str(x), valid_transitions)))
             rule_table_row[token_type] = _build_rule_table(grammar, terminal_symbol, new_lookahead)
 
     return rule_table_row
