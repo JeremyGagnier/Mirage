@@ -3,10 +3,17 @@ from token_type import TokenType
 
 _SYMBOL_NAMES = [
     "FILE",
-    "TEST_OR_ENUM_OR_OBJECT",
-    "IMPORT_DECLARATIONS",
-    "TESTS",
-    "ENUM_VALUES"]
+    "CODE",
+    "MORE_CODE",
+    "LINE",
+    "TYPE",
+    "INNER_TYPE",
+    "MORE_INNER_TYPE",
+    "CALL",
+    "MORE_CALL",
+    "FETCH",
+    "R_FETCH",
+    "VALUE"]
 
 
 class GrammarSymbol:
