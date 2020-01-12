@@ -34,7 +34,8 @@ _TOKEN_NAME_TO_SYMBOLS = {
     "STRING": [],
     "NAME": [],
     "BIN_OP": ["+", "*", "^", ">", "<", "<=", ">=", "!=", "and", "or", "mod"],
-    "UNI_OP": ["not"]}
+    "UNI_OP": ["not"],
+    "PIPE": ["|"]}
 
 _SYMBOL_TO_TOKEN_NAMES = {}
 
