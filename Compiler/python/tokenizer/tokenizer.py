@@ -1,11 +1,11 @@
-from fsm import FSM
 from functools import reduce
 from token import Token
-from token_state import TokenState
 from token_type import TokenType
-from tokenizer_exception import TokenizerException
-from tokenizer_exception_type import TokenizerExceptionType
-from tokenizer_state import TokenizerState
+from .fsm import FSM
+from .token_state import TokenState
+from .tokenizer_exception import TokenizerException
+from .tokenizer_exception_type import TokenizerExceptionType
+from .tokenizer_state import TokenizerState
 
 _alphabet = "abcdefghijklmnopqrtsuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 _numbers = "0123456789"
