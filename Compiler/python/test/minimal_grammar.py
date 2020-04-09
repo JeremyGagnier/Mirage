@@ -5,9 +5,36 @@ from syntax_parser.grammar_symbol import GrammarSymbol
 class MinimalGrammar:
     values = []
 
+"""
+Rule table should look like this (base symbol name to rule name):
+{
+	"OBJECT": "FILE",
+	"VAR": "LINE_READONLY",
+	"NAME": {
+		"OPEN_TEMPLATE": "TEMPLATE_TYPE",
+		"NAME": "TYPE",
+		"COMMA": "TYPE"
+	},
+	"NEWLINE": "MORE_CODE",
+	"COMMA": "MORE_INNER_TYPE"
+}
+
+
+SimpleTest.mirage should be parsed like this:
+
+Tokens: OBJECT NAME NEWLINE VAR NAME EQUALS INT
+Stack: FILE
+
+FILE => OBJECT NAME NEWLINE CODE
+CODE => LINE MORE_CODE?
+LINE => VAR TYPE NAME EQUALS CALL
+TYPE => NAME
+CALL => VALUE
+VALUE => INT
+"""
 
 Enum.value(MinimalGrammar, "MAYBE_TO_NOTHING")
-Enum.value(MinimalGrammar, "FILE_OBJECT", (GrammarSymbol.FILE, [GrammarSymbol.Base.OBJECT, GrammarSymbol.Base.NAME, GrammarSymbol.CODE]))
+Enum.value(MinimalGrammar, "FILE_OBJECT", (GrammarSymbol.FILE, [GrammarSymbol.Base.OBJECT, GrammarSymbol.Base.NAME, GrammarSymbol.Base.NEWLINE, GrammarSymbol.CODE]))
 
 Enum.value(MinimalGrammar, "CODE", (GrammarSymbol.CODE, [GrammarSymbol.LINE, GrammarSymbol.Maybe.MORE_CODE]))
 Enum.value(MinimalGrammar, "MORE_CODE", (GrammarSymbol.MORE_CODE, [GrammarSymbol.Base.NEWLINE, GrammarSymbol.CODE]))
