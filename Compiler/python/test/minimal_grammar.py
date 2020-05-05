@@ -6,17 +6,39 @@ class MinimalGrammar:
     values = []
 
 """
-Rule table should look like this (base symbol name to rule name):
+Rule table should look like this Map[TransitionalSymbol, Lookahead] where Lookahead is Map[GrammarSymbol.Base, Grammar | Lookahead]:
 {
-	"OBJECT": "FILE",
-	"VAR": "LINE_READONLY",
-	"NAME": {
-		"OPEN_TEMPLATE": "TEMPLATE_TYPE",
-		"NAME": "TYPE",
-		"COMMA": "TYPE"
+	"FILE": {
+		"OBJECT": "FILE_OBJECT"
 	},
-	"NEWLINE": "MORE_CODE",
-	"COMMA": "MORE_INNER_TYPE"
+	"CODE": {
+		"VAR": "CODE"
+	},
+	"MORE_CODE": {
+		"NEWLINE": "MORE_CODE"
+	},
+	"LINE": {
+		"VAR": "LINE_READONLY"
+	},
+	"TYPE": {
+		"NAME": {
+			"OPEN_TEMPLATE": "TEMPLATE_TYPE",
+			"NAME": "TYPE",
+			"COMMA": "TYPE"
+		}
+	},
+	"INNER_TYPE": {
+		"NAME": "INNER_TYPE"
+	},
+	"MORE_INNER_TYPE": {
+		"COMMA": "MORE_INNER_TYPE"
+	},
+	"CALL": {
+		"INT": "CALL_VALUE"
+	},
+	"VALUE": {
+		"INT": "VALUE_INT"
+	}
 }
 
 
@@ -51,7 +73,7 @@ Enum.value(MinimalGrammar, "MORE_INNER_TYPE", (GrammarSymbol.MORE_INNER_TYPE, [G
 #Enum.value(MinimalGrammar, "CALL_BRACKETS", (GrammarSymbol.CALL, [GrammarSymbol.Base.OPEN_ARGUMENT, GrammarSymbol.CALL, GrammarSymbol.MORE_CALL, GrammarSymbol.Base.CLOSE_ARGUMENT, GrammarSymbol.MORE_CALL]))
 #Enum.value(MinimalGrammar, "CALL_FETCH", (GrammarSymbol.CALL, [GrammarSymbol.FETCH, GrammarSymbol.MORE_CALL]))
 #Enum.value(MinimalGrammar, "CALL_UNI_OP", (GrammarSymbol.CALL, [GrammarSymbol.Base.UNI_OP, GrammarSymbol.CALL]))
-#Enum.value(MinimalGrammar, "CALL_VALUE", (GrammarSymbol.CALL, [GrammarSymbol.VALUE]))
+Enum.value(MinimalGrammar, "CALL_VALUE", (GrammarSymbol.CALL, [GrammarSymbol.VALUE]))
 #Enum.value(MinimalGrammar, "CALL_DOT", (GrammarSymbol.MORE_CALL, [GrammarSymbol.Base.DOT, GrammarSymbol.FETCH, GrammarSymbol.MORE_CALL]))
 #Enum.value(MinimalGrammar, "CALL_BIN_OP", (GrammarSymbol.MORE_CALL, [GrammarSymbol.Base.BIN_OP, GrammarSymbol.CALL]))
 #Enum.value(MinimalGrammar, "NO_MORE_CALL", (GrammarSymbol.MORE_CALL, []))
@@ -63,5 +85,5 @@ Enum.value(MinimalGrammar, "MORE_INNER_TYPE", (GrammarSymbol.MORE_INNER_TYPE, [G
 #Enum.value(MinimalGrammar, "R_FETCH_NAME", (GrammarSymbol.R_FETCH, [GrammarSymbol.Base.NAME]))
 
 #Enum.value(MinimalGrammar, "VALUE_FLOAT", (GrammarSymbol.VALUE, [GrammarSymbol.Base.FLOAT]))
-#Enum.value(MinimalGrammar, "VALUE_INT", (GrammarSymbol.VALUE, [GrammarSymbol.Base.INT]))
+Enum.value(MinimalGrammar, "VALUE_INT", (GrammarSymbol.VALUE, [GrammarSymbol.Base.INT]))
 #Enum.value(MinimalGrammar, "VALUE_STRING", (GrammarSymbol.VALUE, [GrammarSymbol.Base.STRING]))

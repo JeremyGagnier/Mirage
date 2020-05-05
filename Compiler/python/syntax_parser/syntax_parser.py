@@ -98,6 +98,68 @@ def _build_rule_table(grammar, terminal_symbol, lookahead):
     return rule_table_row
 
 
+def _find_rule_starting_with(grammar, terminal_symbol, token_type, rules_searched=[]):
+    def rules_filter(rule):
+        return (rule.value[0] == terminal_symbol) and (rule not in rules_searched)
+
+    filtered_rules = filter(rules_filter, grammar.values)
+    for rule in filtered_rules:
+        from_symbol, to_symbols = rule.value
+        for to_symbol in to_symbols:
+            if to_symbol in GrammarSymbol.Maybe.values:
+                if to_symbol.inner in GrammarSymbol.Base:
+                    if to_symbol.inner == token_type:
+                        return True
+                else:
+                    if _find_rule_starting_with(grammar, to_symbol.inner, token_type, rules_searched + [rule]):
+                        return True
+            elif to_symbol in GrammarSymbol.Base.values:
+                return (to_symbol == token_type)
+            else:
+                return _find_rule_starting_with(grammar, to_symbol, token_type, rules_searched + [rule])
+
+    return False
+
+
+def _build_rule_table2(grammar):
+    rule_table = {}
+    for terminal_symbol in TERMINAL_SYMBOLS:
+        filtered_rules = filter(lambda rule: rule.value[0] == terminal_symbol, grammar.values)
+
+        for token_type in GrammarSymbol.Base.values:
+            valid_transitions = []
+
+            for rule in filtered_rules:
+                from_symbol, to_symbols = rule.value
+                is_valid = False
+                for to_symbol in to_symbols:
+                    if to_symbol in GrammarSymbol.Maybe.values:
+                        if to_symbol.inner in GrammarSymbol.Base:
+                            if to_symbol.inner == token_type:
+                                is_valid = True
+                                break
+                        else:
+                            if _find_rule_starting_with(grammar, to_symbol.inner, token_type, rules_searched + [rule]):
+                                is_valid = True
+                                break
+                    elif to_symbol in GrammarSymbol.Base.values:
+                        is_valid = (to_symbol == token_type)
+                        break
+                    else:
+                        is_valid = _find_rule_starting_with(grammar, to_symbol, token_type, rules_searched + [rule])
+                        break
+
+                if is_valid:
+                    valid_transitions.append(rule)
+
+
+            # If only one rule is valid set the rule, otherwise recurse
+            if len(valid_transitions) == 1:
+                rule_table[terminal_symbol] = {token_type: valid_transitions[0]}
+            else:
+                pass
+
+
 def _find_rule(stack_symbol, tokens, i, current_table):
     if i > len(tokens):
         raise Exception("Invalid syntax. Ran out of tokens when looking ahead.")
