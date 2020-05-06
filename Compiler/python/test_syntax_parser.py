@@ -1,5 +1,5 @@
 from tokenizer.tokenizer import tokenize
-from syntax_parser.syntax_parser import build_abstract_syntax_tree, _rule_table, _build_rule_table, _derp 
+from syntax_parser.syntax_parser import build_abstract_syntax_tree, _rule_table, _build_rule_table 
 from test.minimal_grammar import MinimalGrammar
 from syntax_parser.rule_table import RuleTable
 
@@ -54,7 +54,7 @@ file_in.close()
 tokens = tokenize(tokenizer_text)
 print("Number of tokens: " + str(len(tokens)))
 
-_rule_table = _derp(MinimalGrammar)
+_rule_table = _build_rule_table(MinimalGrammar)
 print_rule_table(_rule_table)
 
 #ast = build_abstract_syntax_tree(tokens, MinimalGrammar)
