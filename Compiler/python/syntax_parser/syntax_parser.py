@@ -47,6 +47,7 @@ def _is_stack_in_symbols(grammar, symbols, stack, rules_searched = []):
 
     return stack
 
+
 def _get_valid_transitions(grammar, terminal_symbol, stack):
     filtered_rules = filter(lambda rule: rule.value[0] == terminal_symbol, grammar.values)
     valid_transitions = []
@@ -63,10 +64,9 @@ def _build_rule_table_helper(grammar, terminal_symbol, stack):
     for token_type in GrammarSymbol.Base.values:
         valid_transitions = _get_valid_transitions(grammar, terminal_symbol, stack + [token_type])
         if len(valid_transitions) == 1:
-            result[token_type] = valid_transitions[0]
+            result[token_type.inner] = valid_transitions[0]
         elif len(valid_transitions) > 1:
-            result[token_type] = _build_rule_table_helper(grammar, terminal_symbol, stack + [token_type])
-
+            result[token_type.inner] = _build_rule_table_helper(grammar, terminal_symbol, stack + [token_type])
 
 
 def _build_rule_table(grammar):
@@ -75,44 +75,51 @@ def _build_rule_table(grammar):
         rule_table[terminal_symbol] = _build_rule_table_helper(grammar, terminal_symbol, [])
 
 
-"""
-def _find_rule(stack_symbol, tokens, i, current_table):
-    if i > len(tokens):
-        raise Exception("Invalid syntax. Ran out of tokens when looking ahead.")
-    
-    current_token = tokens[i]
-    if stack_symbol in GrammarSymbol.Maybe.values:
-        stack_symbol = stack_symbol.inner 
-
-    if current_token not in current_table.table or stack_symbol not in current_table.table[current_token]:
-        return None
-
-    table_or_rule = current_table.table[current_token][stack_symbol]
-    if isinstance(table_or_rule, RuleTable):
-        _find_rule(stack_symbol, tokens, i + 1, table_or_rule)
+def _find_rule(grammar, stack_symbol, tokens, token_index, is_maybe):
+    if stack_symbol not in _rule_table:
+        if is_maybe:
+            return grammar.MAYBE_TO_NOTHING
+        else:
+            raise Exception("Invalid grammar. " + actual_symbol.name + " has no transitions.")
     else:
-        return table_or_rule
+        lookahead = _rule_table[stack_symbol]
+        while (token_index < len(tokens)) and (tokens[token_index] in lookahead):
+            lookahead = lookahead[tokens[token_index]]
+            if typeof(lookahead) != typeof({}):
+                return lookahead
+            token_index += 1
+
+        if is_maybe:
+            return grammar.MAYBE_TO_NOTHING
+        elif token_index >= len(tokens):
+            raise Exception("Invalid syntax. Expected more tokens.")
+        else:
+            raise Exception("Invalid syntax. Found unexpected token " + tokens[token_index].type.name)
 
 
 def _build_ast_helper(grammar, tokens, stack_symbol, token_index):
-    if stack_symbol in GrammarSymbol.Base.values:
-        if tokens[token_index].type == stack_symbol.inner:
+    if stack_symbol in GrammarSymbol.Maybe.values:
+        is_maybe = True
+        actual_symbol = stack_symbol.inner
+    else:
+        is_maybe = False
+        actual_symbol = stack_symbol
+
+    if actual_symbol in GrammarSymbol.Base.values:
+        if tokens[token_index].type == actual_symbol.inner:
             if token_index < len(tokens):
                 return (token_index + 1, tokens[token_index])
+            elif is_maybe:
+                return (token_index, None)
             else:
                 raise Exception("Invalid syntax. Expected more tokens.")
+        elif is_maybe:
+            return (token_index, None)
         else:
-            raise Exception(
-                "Invalid syntax. Expected " + stack_symbol.name + " but got " + tokens[token_index].type.name)
+            raise Exception("Invalid syntax. Expected " + actual_symbol.name + " but got " + tokens[token_index].type.name)
     else:
-        new_symbols = []
-        rule = _find_rule(stack_symbol, tokens, token_index, _rule_table)
-        if rule != None:
-            (prev_symbol, new_symbols) = rule.value
-        elif stack_symbol in GrammarSymbol.Maybe.values:
-            rule = grammar.MAYBE_TO_NOTHING
-        else:
-            raise Exception("Invalid syntax. Unexpected token.")
+        rule = _find_rule(grammar, actual_symbol, tokens, token_index, is_maybe)
+        (prev_symbol, new_symbols) = rule.value
 
         def reduce_stack(i_and_ast_list, symbol):
             (i, ast_list) = i_and_ast_list
@@ -121,13 +128,11 @@ def _build_ast_helper(grammar, tokens, stack_symbol, token_index):
 
         (i_new, ast_list) = reduce(reduce_stack, new_symbols, (token_index, []))
         return (i_new, AST(rule, ast_list))
-"""
 
 
 _rule_table = {}#_build_rule_table()
 
 
 def build_abstract_syntax_tree(tokens, grammar=Grammar):
-    #(tokens_length, ast) = _build_ast_helper(grammar, tokens, GrammarSymbol.FILE, 0)
-    #return ast
-    pass
+    (tokens_length, ast) = _build_ast_helper(grammar, tokens, GrammarSymbol.FILE, 0)
+    return ast
