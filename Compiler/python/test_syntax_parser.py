@@ -1,50 +1,24 @@
 from tokenizer.tokenizer import tokenize
-from syntax_parser.syntax_parser import build_abstract_syntax_tree, _rule_table, _build_rule_table 
+from syntax_parser.syntax_parser import build_abstract_syntax_tree, build_rule_table 
 from test.minimal_grammar import MinimalGrammar
+from test.minimal_grammar_symbol import MinimalGrammarSymbol
 from syntax_parser.rule_table import RuleTable
 
-def _print_rule_column(column, indentation, indentation_size):
-    print((" " * (indentation * indentation_size)) + "Token                Rule")
-    for (token_type, result) in column.items():
-        if type(result) == dict:
-            print(
-                (" " * (indentation * indentation_size)) +
-                "+ " +
-                token_type.name +
-                " => ")
-            _print_rule_column(result, indentation + 1, indentation_size)
-        else:
-            print(
-                (" " * (indentation * indentation_size)) +
-                "+ " +
-                token_type.name +
-                " => " +
-                (" " * (15 - len(token_type.name))) +
-                str(result))
 
-def print_rule_table(rule_table, indentation=0, indentation_size=2):
-    print((" " * (indentation * indentation_size)) + "Token         Stack              Rule")
+def _print_values(value, indentation=2, indentation_size=2):
+    indentation_str = " " * (indentation * indentation_size)
+    if type(value) == type({}):
+        for (token_type, next_value) in value.items():
+            print(indentation_str + str(token_type) + " =>")
+            _print_values(next_value, indentation + indentation_size, indentation_size)
+    else:
+        print(indentation_str + str(value))
+
+
+def print_rule_table(rule_table):
     for (terminal_symbol, value) in rule_table.items():
-        for (token_type, result) in value.items():
-            if type(result) == dict:
-                print(
-                    (" " * (indentation * indentation_size)) +
-                    token_type.name +
-                    " + " +
-                    (" " * (11 - len(token_type.name))) +
-                    terminal_symbol.name +
-                    " => ")
-                _print_rule_column(result, indentation + 1, indentation_size)
-            else:
-                print(
-                    (" " * (indentation * indentation_size)) +
-                    token_type.name +
-                    " + " +
-                    (" " * (11 - len(token_type.name))) +
-                    terminal_symbol.name +
-                    " => " +
-                    (" " * (15 - len(terminal_symbol.name))) +
-                    str(result))
+        print(str(terminal_symbol) + " =>")
+        _print_values(value)
 
 
 file_in = open("test/SimpleTest.mirage", "r")
@@ -54,7 +28,7 @@ file_in.close()
 tokens = tokenize(tokenizer_text)
 print("Number of tokens: " + str(len(tokens)))
 
-_rule_table = _build_rule_table(MinimalGrammar)
-print_rule_table(_rule_table)
+rule_table = build_rule_table(MinimalGrammar, MinimalGrammarSymbol)
+print_rule_table(rule_table)
 
-#ast = build_abstract_syntax_tree(tokens, MinimalGrammar)
+ast = build_abstract_syntax_tree(rule_table, tokens, MinimalGrammar, MinimalGrammarSymbol)
