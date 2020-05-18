@@ -113,7 +113,9 @@ def add_char_action(previous_token_state, char_and_tokenizer_state):
         unpacked_state.token_text + char,
         unpacked_state.token_start_column,
         unpacked_state.line_num,
-        unpacked_state.column_num + 1)
+        unpacked_state.column_num + 1,
+        unpacked_state.parentheses_depth,
+        unpacked_state.was_newline)
 
     return (tokens, new_state)
 
@@ -212,11 +214,28 @@ def unpack_tokens(tokenizer_state, previous_token_state):
         elif previous_token_state == TokenState.SYMBOL:
             tokens = parse_symbols(tokenizer_state)
 
+        def calculate_change(change, token):
+            if token.token_type == TokenType.OPEN_ARGUMENT:
+                return change + 1
+            elif token.token_type == TokenType.CLOSE_ARGUMENT:
+                return change - 1
+            return change
+
+        paretheses_depth_change = reduce(calculate_change, tokens, 0)
+
+        if (tokenizer_state.was_newline and
+            tokenizer_state.parentheses_depth == 0 and
+            len(tokens) == 1 and
+            tokens[0].token_type in TokenType.LINE_START_TOKENS):
+            tokens = [Token(TokenType.NEWLINE, "\\n", tokenizer_state.line_num - 1, 0)] + tokens
+
         new_tokenizer_state = TokenizerState(
             "",
             tokenizer_state.column_num,
             tokenizer_state.line_num,
-            tokenizer_state.column_num)
+            tokenizer_state.column_num,
+            tokenizer_state.parentheses_depth + paretheses_depth_change,
+            False)
 
         return (tokens, new_tokenizer_state)
 
@@ -235,7 +254,9 @@ def symbol_action(previous_token_state, char_and_tokenizer_state):
         unpacked_state.token_text + char,
         unpacked_state.token_start_column,
         unpacked_state.line_num,
-        unpacked_state.column_num + 1)
+        unpacked_state.column_num + 1,
+        unpacked_state.parentheses_depth,
+        unpacked_state.was_newline)
 
     return (tokens, new_state)
 
@@ -244,16 +265,16 @@ def whitespace_action(previous_token_state, char_and_tokenizer_state):
     (char, tokenizer_state) = char_and_tokenizer_state
     (tokens, unpacked_state) = unpack_tokens(tokenizer_state, previous_token_state)
 
-    new_state = None
     if char == "\n":
-        tokens.append(Token(TokenType.NEWLINE, "\\n", unpacked_state.line_num, unpacked_state.column_num))
-        new_state = TokenizerState("", 1, unpacked_state.line_num + 1, 1)
+        new_state = TokenizerState("", 1, unpacked_state.line_num + 1, 1, unpacked_state.parentheses_depth, True)
     else:
         new_state = TokenizerState(
             unpacked_state.token_text,
             unpacked_state.token_start_column + 1,
             unpacked_state.line_num,
-            unpacked_state.column_num + 1)
+            unpacked_state.column_num + 1,
+            unpacked_state.parentheses_depth,
+            unpacked_state.was_newline)
 
     return (tokens, new_state)
 
@@ -315,9 +336,7 @@ _fsm.add_else_transition(TokenState.INT_DOT, TokenState.INT_DOT_ERROR)
 
 def _step(tokens_and_state, char):
     (tokens, state) = tokens_and_state
-    prev_state = _fsm.state
     (new_tokens, new_state) = _fsm.step((char, state))
-    #print(char + " + " + prev_state + " -> " + _fsm.state + " + " + str(map(lambda token: token.value, new_tokens)))
     return (tokens + new_tokens, new_state)
 
 

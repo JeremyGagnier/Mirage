@@ -1,2 +1,8 @@
 // This is the running state of the tokenizer
-class TokenizerState(String symbolText, Int symbolStartColumn, Int lineNum, Int columnNum)
+class TokenizerState(
+	String symbolText = "",
+	Int symbolStartColumn = 1,
+	Int lineNum = 1,
+	Int columnNum = 1,
+	Int parenthesesDepth = 0,
+	Bool wasNewline = false)

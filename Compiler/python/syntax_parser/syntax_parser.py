@@ -6,6 +6,8 @@ from .rule_table import RuleTable
 
 
 def _is_stack_in_symbols(grammar, grammar_symbol, symbols, stack, rules_searched = []):
+    if stack[0] == grammar_symbol.Base.VAR:
+        should_print = True
     while len(symbols) > 0 and len(stack) > 0:
 
         if symbols[0] in grammar_symbol.Maybe.values:

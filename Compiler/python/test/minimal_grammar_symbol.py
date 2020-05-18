@@ -46,6 +46,6 @@ for fundamental in vars(TokenType).values():
         MinimalGrammarSymbol.values.append(maybe)
 
         maybe_base = Enum.value(MinimalGrammarSymbol.Maybe.Base, fundamental.name, fundamental.value)
-        setattr(maybe_base, "inner", maybe)
+        setattr(maybe_base, "inner", base)
         MinimalGrammarSymbol.values.append(maybe_base)
         MinimalGrammarSymbol.Maybe.values.append(maybe_base)

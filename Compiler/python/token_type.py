@@ -64,3 +64,22 @@ for (token_name, symbols) in _TOKEN_NAME_TO_SYMBOLS.items():
 for (token_name, symbols) in _TOKEN_NAME_TO_SYMBOLS.items():
     for symbol in symbols:
         _SYMBOL_TO_TOKEN_NAMES[symbol] = vars(TokenType)[token_name]
+
+
+TokenType.LINE_START_TOKENS = [
+    TokenType.CLASS,
+    TokenType.OBJECT,
+    TokenType.ENUM,
+    TokenType.PUBLIC,
+    TokenType.PRIVATE,
+    TokenType.PROTECTED,
+    TokenType.VAR,
+    TokenType.METHOD_MOD,
+    TokenType.PACKAGE,
+    TokenType.IMPORT,
+    TokenType.THROW,
+    TokenType.TEST,
+    TokenType.FLOAT,
+    TokenType.INT,
+    TokenType.STRING,
+    TokenType.NAME]

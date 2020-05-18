@@ -36,3 +36,23 @@ Float
 Int
 String
 Name
+
+Seq[TokenType] lineStartTokens = Seq(
+	Class,
+	Object,
+	Enum,
+	Public,
+	Private,
+	Protected,
+	Var,
+	MethodMod,
+	Loop,
+	Package,
+	Import,
+	Throw,
+	Break,
+	Test,
+	Float,
+	Int,
+	String,
+	Name)

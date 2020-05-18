@@ -32,5 +32,5 @@ When humans are constantly modifying configuration files they are bound to make 
     * Windows (git bash): `$ cp mirage.sublime-syntax ${APPDATA}/Sublime\ Text\ 3/Packages/User`
     * Mac: `$ cp mirage.sublime-syntax ~/Library/Application\ Support/Sublime\ Text\ 3/Packages/User`
     * Linux: `$ cp mirage.sublime-syntax ~/.config/sublime-text-3/Packages/User/`
-2. Re-open Sublime Text 3
+2. Open a .mirage file
 3. Click View -> Syntax -> Mirage

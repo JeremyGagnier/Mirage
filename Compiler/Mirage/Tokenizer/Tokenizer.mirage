@@ -13,12 +13,12 @@ String symbolStarters = validSymbolChars
 
 FSM[TokenState, (String-1, TokenizerState), (Seq[Token], TokenizerState)] symbolFSM = FSM()
 {
-    // Exclusivity isn't perfectly checked because that's likely impossible. It's checked by verifying that mutual
-    // scopes don't have any overlap in their type annotations. This is equivalent to smart dead code detection.
-    // For instance char == "." will change String-1 char's type to String-1-Dot and validNumberChars.contains(char)
-    // will change String-1 char's type to String-1-In#validNumberChars which has overlap because "." is also in
-    // validNumberChars. Additionally String-1-Dot char would cause dead code detection on
-    // if (not validNumberChars.contains(char)) { ... }.
+    // Exclusivity isn't perfectly checked because that's likely exponential time complexity. It's checked by verifying
+    // that mutual scopes don't have any overlap in their type annotations. This is equivalent to smart dead code
+    // detection. For instance char == "." will change String-1 char's type to String-1-Dot and
+    // validNumberChars.contains(char) will change String-1 char's type to String-1-In#validNumberChars which has
+    // overlap because "." is also in validNumberChars. Additionally String-1-Dot char would cause dead code detection
+    // on if (not validNumberChars.contains(char)) { ... }.
     // An ephemeral state is an exclusive state that must transition. This is also compile time checked.
     addExclusiveState(Comment, commentAction)
     addEphemeralState(Escaped, addCharAction)
@@ -283,20 +283,50 @@ Seq[Token] parseSymbols(TokenizerState tokenizerState)
             Nil
         }
 
+        Int parenthesesDepthChange = tokens.fold(0, (Token token, Int change)
+            {
+                change +
+                    if (token.type == OpenArgument)
+                    {
+                        1
+                    }
+                    else if (token.type == CloseArgument)
+                    {
+                        -1
+                    }
+                    else
+                    {
+                        0
+                    }
+            })
+
+        Seq[Token] tokensWithNewline = if (tokens.size == 1 and
+            tokenizerState.wasNewline and
+            tokenizerState.parenthesesDepth == 0 and
+            TokenType.lineStartTokens.contains(tokens.get(0)))
+        {
+            Token(Newline, "\\n", tokenizerState.lineNum - 1, 0) + tokens
+        }
+        else
+        {
+            tokens
+        }
+
         TokenizerState newState = copy (tokenizerState)
         {
             symbolText = ""
             symbolStartColumn = columnNum
+            parenthesesDepth += parenthesesDepthChange
+            wasNewline = false
         }
 
-        (tokens, newState)
+        (tokensWithNewline, newState)
     }
     else
     {
         (Nil, tokenizerState)
     }
 }
-
 
 (Seq[Token], TokenizerState) symbolAction(
     TokenState previousTokenState,
@@ -324,29 +354,27 @@ Seq[Token] parseSymbols(TokenizerState tokenizerState)
     TokenState previousTokenState,
     (String-1 char, TokenizerState tokenizerState))
 {
-    (Seq[Token] previousTokens, TokenizerState unpackedState) = unpackTokens(tokenizerState, previousTokenState)
-    (Option[Token] maybeToken, TokenizerState newTokenizerState) = if (char == "\n")
+    (Seq[Token] tokens, TokenizerState unpackedState) = unpackTokens(tokenizerState, previousTokenState)
+    TokenizerState newTokenizerState = if (char == "\n")
     {
-        Token newToken = Some(Token(Newline, "\\n", unpackedState.lineNum, unpackedState.columnNum))
-        TokenizerState newState = copy (unpackedState)
+        copy (unpackedState)
         {
             lineNum += 1
             symbolStartColumn = 1
             columnNum = 1
+            wasNewline = true
         }
-        (Some(newToken), newState)
     }
     else
     {
-        TokenizerState newState = copy (unpackedState)
+        copy (unpackedState)
         {
             symbolStartColumn += 1
             columnNum += 1
         }
-        (None, newState)
     }
 
-    (previousTokens + maybeToken, newTokenizerState)
+    (tokens, newTokenizerState)
 }
 
 (Seq[Token], TokenizerState) step(String-1 char, (Seq[Token] tokens, TokenizerState state))
@@ -358,6 +386,6 @@ Seq[Token] parseSymbols(TokenizerState tokenizerState)
 
 public Seq[Token] tokenize(String plaintext) throws TokenizerException
 {
-    (Seq[Token] tokens, TokenizerState state) = (plaintext + "\n").fold((Nil, TokenizerState("", 1, 1, 1)), step)
+    (Seq[Token] tokens, TokenizerState state) = (plaintext + "\n").fold((Nil, TokenizerState()), step)
     tokens
 }
