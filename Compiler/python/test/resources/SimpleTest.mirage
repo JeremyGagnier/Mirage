@@ -1,0 +1,23 @@
+object SimpleTest
+
+// Test assignment of immutable private
+Int a = 1
+
+// Test type template and function call, plus readonly
+var Seq[Int] b = Seq(a)
+
+// Test newline trimming and binary operators
+Seq[Int] c = b +
+	Seq(x) +
+	b +
+	Seq(2, 3) +
+	9
+
+// Test nested types, multiple types in templates, and multiple arguments
+public var Dict[String, Seq[Int]] d = Dict(("test", b), ("test2", Seq(1, 2, 3)))
+
+// Test method calls
+Seq[Int] e = d.get("test")
+
+// Test inner type method calls and call chains
+String f = b:toString().head()

@@ -1,7 +1,5 @@
 from tokenizer.tokenizer import tokenize
 from syntax_parser.syntax_parser import build_abstract_syntax_tree, build_rule_table 
-from test.minimal_grammar import MinimalGrammar
-from test.minimal_grammar_symbol import MinimalGrammarSymbol
 from syntax_parser.rule_table import RuleTable
 from syntax_parser.ast import AST
 
@@ -50,17 +48,33 @@ def print_ast(ast):
     print_ast_helper(ast)
 
 
-file_in = open("test/SimpleTest.mirage", "r")
-tokenizer_text = file_in.read()
-file_in.close()
+def test_grammar(file_text, grammar_enum, grammar_symbol_enum):
+    tokens = tokenize(file_text)
+    print_tokens(tokens)
+    print()
 
-tokens = tokenize(tokenizer_text)
-print_tokens(tokens)
-print()
+    rule_table = build_rule_table(grammar_enum, grammar_symbol_enum)
+    print_rule_table(rule_table)
+    print()
 
-rule_table = build_rule_table(MinimalGrammar, MinimalGrammarSymbol)
-print_rule_table(rule_table)
-print()
+    ast = build_abstract_syntax_tree(rule_table, tokens, grammar_enum, grammar_symbol_enum)
+    print_ast(ast)
 
-ast = build_abstract_syntax_tree(rule_table, tokens, MinimalGrammar, MinimalGrammarSymbol)
-print_ast(ast)
+
+def test_minimal_grammar():
+    from test.syntax_parser.minimal_grammar import MinimalGrammar
+    from test.syntax_parser.minimal_grammar_symbol import MinimalGrammarSymbol
+
+    with open("test/resources/MinimalTest.mirage", "r") as file_in:
+        test_grammar(file_in.read(), MinimalGrammar, MinimalGrammarSymbol)
+
+
+def test_simple_grammar():
+    from test.syntax_parser.simple_grammar import SimpleGrammar
+    from test.syntax_parser.simple_grammar_symbol import SimpleGrammarSymbol
+
+    with open("test/resources/SimpleTest.mirage", "r") as file_in:
+        test_grammar(file_in.read(), SimpleGrammar, SimpleGrammarSymbol)
+
+test_minimal_grammar()
+test_simple_grammar()

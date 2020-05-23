@@ -1,0 +1,3 @@
+object MinimalTest
+
+var Int x = 1

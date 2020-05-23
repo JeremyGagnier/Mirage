@@ -5,55 +5,6 @@ from .simple_grammar_symbol import SimpleGrammarSymbol as G
 class SimpleGrammar:
     values = []
 
-"""
-Rule table should look like this Map[TransitionalSymbol, Lookahead] where Lookahead is Map[GrammarSymbol.Base, Grammar | Lookahead]:
-{
-	"FILE": {
-		"OBJECT": "FILE_OBJECT"
-	},
-	"CODE": {
-		"VAR": "CODE"
-	},
-	"MORE_CODE": {
-		"NEWLINE": "MORE_CODE"
-	},
-	"LINE": {
-		"VAR": "LINE_READONLY"
-	},
-	"TYPE": {
-		"NAME": {
-			"OPEN_TEMPLATE": "TEMPLATE_TYPE",
-			"NAME": "TYPE",
-			"COMMA": "TYPE"
-		}
-	},
-	"INNER_TYPE": {
-		"NAME": "INNER_TYPE"
-	},
-	"MORE_INNER_TYPE": {
-		"COMMA": "MORE_INNER_TYPE"
-	},
-	"CALL": {
-		"INT": "CALL_VALUE"
-	},
-	"VALUE": {
-		"INT": "VALUE_INT"
-	}
-}
-
-
-SimpleTest.mirage should be parsed like this:
-
-Tokens: OBJECT NAME NEWLINE VAR NAME EQUALS INT
-Stack: FILE
-
-FILE => OBJECT NAME NEWLINE CODE
-CODE => LINE MORE_CODE?
-LINE => VAR TYPE NAME EQUALS CALL
-TYPE => NAME
-CALL => VALUE
-VALUE => INT
-"""
 
 Enum.value(SimpleGrammar, "FILE_OBJECT", 		(G.FILE, 			[G.Base.OBJECT, G.Base.NAME, G.Base.NEWLINE, G.CODE]))
 
