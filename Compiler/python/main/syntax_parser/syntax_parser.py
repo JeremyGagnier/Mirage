@@ -1,8 +1,8 @@
 from functools import reduce
-from .ast import AST
-from .grammar_symbol import GrammarSymbol
-from .grammar import Grammar
-from .rule_table import RuleTable
+from ast import AST
+from grammar_symbol import GrammarSymbol
+from grammar import Grammar
+from rule_table import RuleTable
 
 
 def _is_stack_in_symbols(grammar, grammar_symbol, symbols, stack, rules_searched = []):

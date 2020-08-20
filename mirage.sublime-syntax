@@ -15,7 +15,7 @@ variables:
   base_type: \b(Bool|Char|String|Float|Double|Int|Long|Unit|Seq|Dict|Some|Option)(-\w+)*\b
   type_mod: \b(abstract|override|var|public|private)\b
   #reserved: \b(break|continue|in|throw)\b
-  reserved: \b(copy|break|continue|in|throw|class|object|package|throws)\b
+  reserved: \b(copy|break|continue|in|throw|class|object|test|package|throws)\b
 
 contexts:
   main:

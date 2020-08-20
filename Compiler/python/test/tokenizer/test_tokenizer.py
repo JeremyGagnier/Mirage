@@ -1,10 +1,10 @@
-from tokenizer.tokenizer import tokenize
+import tokenizer
 
-file_in = open("../Mirage/Tokenizer/Tokenizer.mirage", "r")
+file_in = open("test/resources/MinimalTest.mirage", "r")
 tokenizer_text = file_in.read()
 file_in.close()
 
-tokens = tokenize(tokenizer_text)
+tokens = tokenizer.tokenize(tokenizer_text)
 
 print("Number of tokens: " + str(len(tokens)))
 max_token_length = max(map(lambda token: len(token.value), tokens))

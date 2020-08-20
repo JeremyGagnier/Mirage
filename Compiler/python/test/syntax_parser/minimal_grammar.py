@@ -1,4 +1,4 @@
-from enum import Enum
+from mirage_enum import Enum
 from .minimal_grammar_symbol import MinimalGrammarSymbol as G
 
 

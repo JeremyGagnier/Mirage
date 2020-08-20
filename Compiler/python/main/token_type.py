@@ -1,4 +1,4 @@
-from enum import Enum
+from mirage_enum import Enum
 
 _TOKEN_NAME_TO_SYMBOLS = {
     "OPEN_ARGUMENT": ["("],

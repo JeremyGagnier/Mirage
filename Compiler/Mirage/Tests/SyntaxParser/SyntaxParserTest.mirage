@@ -1,0 +1,13 @@
+test SyntaxParserTest
+
+test ("Parses minimal grammar")
+{
+    inject(MinimalGrammar, Grammar)
+    // TODO: Write tests
+}
+
+test ("Parses simple grammar")
+{
+    inject(SimpleGrammar, Grammar)
+    // TODO: Write tests
+}

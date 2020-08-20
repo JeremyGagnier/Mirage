@@ -1,1 +1,3 @@
 *.pyc
+.dumb_pants
+__pycache__

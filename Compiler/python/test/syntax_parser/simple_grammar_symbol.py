@@ -1,4 +1,4 @@
-from enum import Enum, EnumField
+from mirage_enum import Enum, EnumField
 from token_type import TokenType
 
 _SYMBOL_NAMES = [

@@ -1,4 +1,4 @@
-from enum import Enum
+from mirage_enum import Enum
 
 class TokenizerExceptionType:
     values = []

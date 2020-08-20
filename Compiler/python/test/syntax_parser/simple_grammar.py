@@ -1,4 +1,4 @@
-from enum import Enum
+from mirage_enum import Enum
 from .simple_grammar_symbol import SimpleGrammarSymbol as G
 
 
