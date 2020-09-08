@@ -1,0 +1,45 @@
+import math
+
+object AllTokensTest
+
+T functionOnT[T](T value)
+{
+    value
+}
+
+
+class AllTokensTest[T](Int a, Int b, T c) extends
+    A(a),
+    B(a + b),
+    C(functionOnT(c))
+
+var Seq[Seq[Int]] z = Seq(Seq(a mod 9, b))
+
+public Float arbitrary = if (z:headOption().headOption() == Some(Some(1)) {
+    (math.Pi * math.Pi / 2.0 + 1) / (2 ^ 8)
+} else {
+    0.0
+}
+
+private String-Nonempty testPrivate = "\"This is a 'test' string\n\""
+
+override Int overrideTest() {
+    throw Exception("Not implemented")
+}
+
+abstract T abstractTest()
+
+Int|T multipleReturnMethod(Int more) {
+    var m = a + b
+    m *= more
+    m += more
+    m /= a
+    m -= a
+    if (a != 0) {
+        c
+    } else if (b != 0) {
+        m
+    } else {
+        b
+    }
+}

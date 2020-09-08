@@ -11,7 +11,7 @@ _alphabet = "abcdefghijklmnopqrtsuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 _numbers = "0123456789"
 _valid_name_chars = _alphabet + _numbers + "_"
 _valid_number_chars = _numbers
-_valid_symbol_chars = "()[]{}<>+-*/=,."
+_valid_symbol_chars = "()[]{}<>+-*/=,.:"
 
 _name_starters = _alphabet + "#$"
 _number_starters = _numbers

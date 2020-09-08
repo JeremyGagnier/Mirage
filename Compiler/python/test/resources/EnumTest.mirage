@@ -1,0 +1,3 @@
+enum EnumTest[String]
+0: a = "a"
+1: b = "b"

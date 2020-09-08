@@ -40,10 +40,10 @@ class DependencyTree:
                 dependencies = list(filter(lambda x: x.replace(' ', '') != "", raw_dependencies))
                 cyclic_dependencies = deps_found.intersection(dependencies)
                 if len(cyclic_dependencies) != 0:
-                    print(f"Found dependency cycle(s) at \"{path}\": {str(cyclic_dependencies)}")
+                    raise Exception(f"Found dependency cycle(s) at \"{path}\": {str(cyclic_dependencies)}")
                 else:
                     next_deps_found = set(deps_found)
-                    next_deps_found.update(dependencies)
+                    next_deps_found.update(path)
                     self.children = [DependencyTree(dependency, next_deps_found) for dependency in dependencies]
         except FileNotFoundError:
             raise Exception(f"BUILD file not found at \"{path}\"")

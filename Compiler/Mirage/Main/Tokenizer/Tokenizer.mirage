@@ -5,7 +5,7 @@ object Tokenizer
 
 String validNameChars = Constants.alphabet + Constants.numbers + "_"
 String validNumberChars = Constants.numbers
-String validSymbolChars = "()[]{}<>+-*/=,."
+String validSymbolChars = "()[]{}<>+-*/=,.:"
 
 String nameStarters = Constants.alphabet + "#$"
 String numberStarters = Constants.numbers
