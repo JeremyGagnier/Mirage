@@ -1,0 +1,82 @@
+// Plain function
+Int add(Int first, Int second)
+{
+    first + second
+}
+
+Int three = add(first = 1, second = 2)
+
+// Template function
+Response printFilter[Request, Response](Request request, Func[Response, Request] serve)
+{
+    print(request.toString())
+    Response response = serve(request)
+    print(response.toString())
+    response
+}
+
+
+
+// Int-32 can implicit cast to Int-64
+Int-32 a = 10
+Int-64 b = a
+// Different Int sizes can be math'd together
+Int c = a + b
+// However the Int sizes can't be implicitly cast to smaller sizes
+// Int-8 d = c // fails to compile
+
+class Int-32:
+Int-32 cast(Int-8 int) identity
+Int-32 cast(Int-16 int) identity
+
+if ()
+{}
+else
+{}
+
+switch ()
+case ()
+{}
+case ()
+{}
+
+
+T if[T](Bool condition)(Action[T] onPass, Action[T] onFail)
+{
+    if (condition)
+    {
+        onPass()
+    }
+    else
+    {
+        onFail()
+    }
+}
+
+annotation Seq[T]-Empty
+annotation Seq[T]-NonEmpty
+
+// If the compiler can prove that one of the statements in the infer is true or false in a given context then it can
+// annotate the type thusly.
+infer [T](Seq[T] sequence)
+{
+    // Each line must be a boolean statement utilizing the inferables
+    sequence.size == 0
+    sequence.empty
+    !sequence.nonEmpty
+}
+then (Seq[T]-Empty)
+else (Seq[T]-NonEmpty)
+
+replace [A, B, C](Seq[A] x, Func[B, A] y, Func[C, B] z)
+{
+    x.map(y).map(z)
+}
+with
+{
+    x.map((A a)
+    {
+        z(y(a))
+    })
+}
+
